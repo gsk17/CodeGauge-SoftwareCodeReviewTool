@@ -18,14 +18,14 @@ project **#17, Software Code Review Tool**.
 | Phase | Dates | State |
 |---|---|---|
 | Sprint 0 — design and planning | 4–7 Nov 2026 | **complete** |
-   Sprint 1 | 9–22 Nov 2026 | not started |
+   Sprint 1 | 9–22 Nov 2026 | **in progress** |
 | Sprint 2 | 23 Nov–6 Dec 2026 | not started |
 | Sprint 3 | 7–20 Dec 2026 | not started |
 | Hardening | 21–27 Dec 2026 | not started |
 | Report, video, packaging | 28 Dec–3 Jan 2027 | not started |
 | Submitted | 4 Jan 2027 | not started |
 
-**User stories:** 0 of 36 done · 0 of 186 story points
+**User stories:** 0 of 36 done · 0 of 186 story points · Sprint 1 backlog: 12 stories, 56 points
 **Tests:** 6 passing · **Coverage:** data model only
 
 <!-- PHASE: update this table and these two lines at every sprint review. -->
@@ -55,7 +55,7 @@ module.
 Each member owns a vertical slice, because the testing and research marks are assessed
 individually.
 
-**Repository:** `<add the public URL at the lab session>`
+**Repository:** https://github.com/gsk17/CodeGauge-SoftwareCodeReviewTool
 **Collaborators:** `<add the Professor's and every TA's GitHub ID>`
 
 <!-- PHASE 1: fill in usernames, GitHub handles, the repository URL and the collaborators. -->

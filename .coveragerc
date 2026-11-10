@@ -1,0 +1,10 @@
+[run]
+source = core,cli,model
+omit =
+    */test/*
+    */tests/*
+    main.py
+
+[report]
+show_missing = True
+skip_empty = True

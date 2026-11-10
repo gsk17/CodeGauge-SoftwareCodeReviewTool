@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.coverage
+htmlcov/
+reviews.dat
+.pytest_cache/
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/shelf/
+.superpowers/

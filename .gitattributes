@@ -1,0 +1,27 @@
+# Line-ending policy.
+#
+# core.autocrlf=true on Windows rewrites checked-out files to CRLF. For shell
+# scripts that is fatal: every line gains a carriage return, so `set -euo
+# pipefail` becomes an option named "pipefail\r" and the script dies on line 10.
+# It breaks under WSL bash, under any Linux or macOS shell, and on the lab
+# machines - and it breaks for every teammate the moment they clone.
+#
+# These files must keep LF endings whatever the platform.
+
+*.sh text eol=lf
+*.tsv text eol=lf
+
+# Python and Markdown are endings-agnostic, but keeping them consistent means a
+# diff never shows a whole file as changed just because someone opened it in a
+# different editor.
+*.py text eol=lf
+*.md text eol=lf
+
+# Never translate these.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.zip binary
+*.mp4 binary

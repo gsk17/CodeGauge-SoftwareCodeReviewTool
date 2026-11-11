@@ -26,11 +26,21 @@ Link the branch to the issue in GitHub's **Development** sidebar.
 
 Look up your story's exact signature and assertions in the implementation plan
 (`docs/design/plans/2026-11-04-code-review-tool.md`). Write the test file in your
-black-box technique package:
+black-box technique packages. **The brief requires two black-box strategies, so this
+is two files**:
 
 ```bash
-# <username>/test/blackbox/<technique>/test_classify_line.py
+# specification-based - inputs chosen from the spec, expected values written by hand
+<username>/test/blackbox/equivalence_partitioning/test_classify_line.py
+
+# random-based - random inputs against a fixed seed, checked against an invariant
+<username>/test/blackbox/random_testing/test_classify_line.py
 ```
+
+A random test has no hand-written expected value. It asserts a property that must hold
+for every input: that the result is always one of the three valid classes, that leading
+whitespace never changes the answer, that shuffling the arguments never changes the
+total. Fix the seed so a failure can be replayed.
 
 Open the file with a comment naming the technique and the function under test — the
 rubric checks for that comment.

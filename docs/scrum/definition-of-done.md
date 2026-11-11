@@ -23,7 +23,14 @@ can recover.
 - [ ] All tests pass: `python -m pytest -v`.
 - [ ] Black-box test cases exist under `<username>/test/blackbox/<technique>/`, one
       directory per taught technique, each file commented with the technique and the
-      function under test.
+      function under test. **The brief requires BOTH black-box strategies**, so this is
+      two packages per function, not one:
+      - `blackbox/equivalence_partitioning/` — specification-based: inputs chosen from
+        the specification, compared against hand-written expected values
+      - `blackbox/random_testing/` — random-based: inputs generated at random against a
+        fixed seed, checked against an **invariant** rather than an expected value
+        (e.g. the result is always one of four bands; shuffling the inputs cannot change
+        the total; adding leading whitespace cannot change the classification)
 - [ ] White-box test cases exist under `<username>/test/whitebox/<technique>/`.
 - [ ] The symbolic execution tree, the path conditions and the concolic iteration table
       are written up in `docs/symbolic/<username>-symbolic-execution.md`, and the solved

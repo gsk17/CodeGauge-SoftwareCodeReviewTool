@@ -45,15 +45,18 @@ module.
 
 ## Team
 
-| Member | Student number | Username | GitHub | Slice | Stories |
-|---|---|---|---|---|---|
-| Gunjan | 259059915 | `gsk17` | `gsk17` | scanning and line metrics | US01–US09 |
-| Kasam | 259059933 | `khm12` | `kasam-leicester` | complexity metrics | US10–US18 |
-| Saaket | 269046020 | `ssl21` | `saaket-ssl` | rule engine and severity | US19–US27 |
-| Harshita | 269035432 | `hcg22` | `guduru0112` | scoring, history and persistence | US28–US36 |
+| Member | Student number | Username | GitHub | Slice | Stories | Points |
+|---|---|---|---|---|---|---|
+| Gunjan | 259059915 | `gsk17` | `gsk17` | scanning and line metrics | US01–US04, US06–US09, US36 | 46 |
+| Kasam | 259059933 | `khm12` | `kasam-leicester` | complexity metrics | US10, US12–US18, US20 | 50 |
+| Saaket | 269046020 | `ssl21` | `saaket-ssl` | rule engine and severity | US11, US19, US21–US27 | 45 |
+| Harshita | 269035432 | `hcg22` | `guduru0112` | scoring, history and persistence | US05, US28–US35 | 45 |
 
 Each member owns a vertical slice, because the testing and research marks are assessed
-individually.
+individually. The story numbers are not contiguous: after planning poker the per-member
+totals were 36/55/40/55, a 19-point spread, so two same-sprint swaps were made to bring
+them within 5 of each other — US05 ↔ US36 and US20 ↔ US11. Ownership is therefore per
+function, not per module.
 
 **Repository:** https://github.com/gsk17/CodeGauge-SoftwareCodeReviewTool
 **Collaborators:** `<add the Professor's and every TA's GitHub ID>`

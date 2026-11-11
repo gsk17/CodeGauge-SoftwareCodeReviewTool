@@ -32,10 +32,10 @@ delays the whole project.
 | A | Requirements and user story backlog | — | all four |
 | B | Repository, PyCharm project, skeleton, tooling | A | all four |
 | C | Data model | B | all four |
-| E | M2 complexity metrics (US10–US18) | C | Kasam |
-| D | M1 scanner and line metrics (US01–US09) | C, E | Gunjan |
-| F | M3 rule engine and severity (US19–US27) | C | Saaket |
-| G | M4 scoring, history, persistence (US28–US36) | C | Harshita |
+| E | M2 complexity metrics (`core/complexity.py`) | C | Kasam* |
+| D | M1 scanner and line metrics (`core/scanner.py`, `core/line_metrics.py`) | C, E | Gunjan* |
+| F | M3 rule engine and severity (`core/rules.py`, `core/severity.py`) | C | Saaket* |
+| G | M4 scoring, history, persistence (`core/scoring.py`, `core/history.py`, `core/storage.py`) | C | Harshita* |
 | H | CLI, formatter, samples (integration) | D, E, F, G | all four |
 | I | Test packages and coverage gate | H | all four |
 | J | Symbolic execution and concolic write-ups | I | all four |
@@ -44,6 +44,13 @@ delays the whole project.
 | M | Report | J, K, L | all four |
 | N | Video demonstration | M | all four |
 | O | Packaging and lab verification | N | all four |
+
+\* Primary owner. After planning poker the per-member point totals were 36/55/40/55, a
+19-point spread against the brief's requirement that they be relatively equal, so two
+same-sprint story swaps were made: US05 ↔ US36 and US20 ↔ US11. Ownership is therefore per
+**function**, not per module — Saaket owns US11 inside `core/complexity.py`, and Gunjan
+owns US36 inside `core/storage.py`. The work packages below are still the right unit for
+scheduling, because the dependencies run between modules rather than between people.
 
 **Why D depends on E.** The scanner counts the five decision keywords separately and calls
 `core.complexity.decision_points(...)` to aggregate them, so M2's function must exist before

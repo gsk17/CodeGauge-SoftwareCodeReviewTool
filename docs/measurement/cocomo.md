@@ -190,8 +190,8 @@ it:
    rather than compact dispatch, which inflates LOC without inflating effort.
 
 **What the estimate is still worth.** The *relative* picture is sound and was used: the
-models agree that this is a one-to-one-and-a-half person job, which is why the 186 story
-points were split four ways, at 46, 50, 45 and 45 points each, rather than concentrated, and they agree that
+models agree that this is a one-to-one-and-a-half person job, which is why the 196 story
+points were split four ways, at 46, 55, 47 and 48 points each, rather than concentrated, and they agree that
 the scale exponent is driven by precedentedness and process maturity, which is exactly what
 the CMMI Level 2 effort in this project is meant to improve. A function-point count would
 be the better size measure for a product this small, and is the measure the team would use

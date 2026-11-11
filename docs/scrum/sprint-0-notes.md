@@ -18,7 +18,7 @@ the backlog, the estimates, the process agreements and the repository.
 | Definition of Done, agreed by all four | [definition-of-done.md](definition-of-done.md) |
 | PERT network, critical path and schedule risk | [../measurement/pert.md](../measurement/pert.md) |
 | COCOMO I and II estimates | [../measurement/cocomo.md](../measurement/cocomo.md) |
-| EVM baseline, BAC 372 person-hours | [../measurement/evm.md](../measurement/evm.md) |
+| EVM baseline, BAC 392 person-hours | [../measurement/evm.md](../measurement/evm.md) |
 | Planning poker record sheet | [../measurement/planning-poker.md](../measurement/planning-poker.md) |
 | CMMI Level 2 audit framework | [../cmmi/level2-audit.md](../cmmi/level2-audit.md) |
 | Project skeleton, data model, test tooling | `main.py`, `model/`, `pytest.ini`, `.coveragerc` |
@@ -64,7 +64,7 @@ practice, and discarding it afterwards is what the word "throwaway" means.
 | Risk | Assessment | Mitigation |
 |---|---|---|
 | The critical path needs 46 working days against roughly 41 available | ~7% confidence of finishing in the window ([pert.md](../measurement/pert.md) §6) | overlap the symbolic write-ups with the coverage work, which shortens the path to ~39.8 days; use F, G, K and L slack for blocked members |
-| 40 marks are individual, so one member falling behind cannot be covered by the others | high impact | equal equal within 5 points (46/50/45/45); per-member completion tracked in the burndown file; Definition of Done names the individual artifacts per story |
+| 40 marks are individual, so one member falling behind cannot be covered by the others | high impact | equal equal within 5 points (46/55/47/48); per-member completion tracked in the burndown file; Definition of Done names the individual artifacts per story |
 | Technique directory names come from Lectures 8–10, not yet delivered | blocks the test package layout, not the code | `scripts/rename_test_packages.sh` parameterises them; confirm before Sprint 1 testing |
 | University usernames needed for package names; student numbers cannot be Python packages | blocks the test packages entirely | collect in the first lab session; the script now rejects a digit-leading name outright |
 | COCOMO over-estimates a project this small by roughly eightfold | affects the write-up, not the plan | discussed explicitly in `cocomo.md` §5 rather than presented as a prediction |

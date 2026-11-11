@@ -79,7 +79,7 @@ plan.
 | US01 | … | Gunjan | 3 | 1 | `core/scanner.py :: classify_line` |
 | … | | | | | |
 
-State the per-member totals and that they are equal at equal within 5 points (46/50/45/45).
+State the per-member totals - 46, 55, 47 and 48 points - and that they fall within 9 of each other on a mean of 49.
 
 ### A.2.2 Planning poker
 

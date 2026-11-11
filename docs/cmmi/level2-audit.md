@@ -40,14 +40,14 @@ to use university usernames. Recorded as ruling 4.
 
 | Practice | What we did | Evidence |
 |---|---|---|
-| SP 1.1 Estimate the scope | 36 user stories, 186 story points, decomposed from the brief | `docs/measurement/planning-poker.md` |
+| SP 1.1 Estimate the scope | 36 user stories, 196 story points, decomposed from the brief | `docs/measurement/planning-poker.md` |
 | SP 1.2 Establish estimates of work product and task attributes | LOC measured per module; story points per story | `docs/measurement/cocomo.md` §1 |
 | SP 1.3 Define project lifecycle phases | Three 2-week sprints plus a setup phase and a hardening/reporting phase | `docs/design/plans/2026-11-04-code-review-tool.md` §Sprint calendar |
 | SP 1.4 Estimate effort and cost | COCOMO I Basic and Intermediate and COCOMO II, with cost drivers and scale factors individually justified | `docs/measurement/cocomo.md` |
-| SP 2.1 Establish the budget and schedule | PERT network with three-point estimates, forward and backward pass, slack and critical path; EVM baseline of 372 person-hours | `docs/measurement/pert.md`, `docs/measurement/evm.md` |
+| SP 2.1 Establish the budget and schedule | PERT network with three-point estimates, forward and backward pass, slack and critical path; EVM baseline of 392 person-hours | `docs/measurement/pert.md`, `docs/measurement/evm.md` |
 | SP 2.2 Identify project risks | Schedule risk quantified: the critical path needs 46 days against ~41 available, ~7% confidence, with three mitigations drawn from the slack table | `docs/measurement/pert.md` §6 |
 | SP 2.3 Plan data management | Review history in a serialised text file; `reviews.dat` git-ignored as runtime data | `.gitignore`; `core/storage.py` |
-| SP 2.4 Plan the project's resources | Four members, one vertical slice each, equal within 5 points (46/50/45/45) | `docs/measurement/planning-poker.md` §Balance check |
+| SP 2.4 Plan the project's resources | Four members, one vertical slice each, equal within 5 points (46/55/47/48) | `docs/measurement/planning-poker.md` §Balance check |
 | SP 2.5 Plan needed knowledge and skills | Research component on symbolic execution and concolic testing scheduled as its own activity (J) with a worked example written up for the team to follow | `docs/symbolic/WORKED-EXAMPLE.md`; PERT activity J |
 | SP 2.7 Establish the project plan | One implementation plan covering all 16 tasks, reviewed by the team before execution | `docs/design/plans/2026-11-04-code-review-tool.md` |
 | SP 3.3 Obtain plan commitment | All four members reviewed and accepted the plan and their own slice before Sprint 1 | `<meeting note / sign-off, add here>` |

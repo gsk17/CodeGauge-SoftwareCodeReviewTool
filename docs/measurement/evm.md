@@ -15,12 +15,12 @@ dimensionless.
 
 | Quantity | Value |
 |---|---|
-| Total story points | 186 |
+| Total story points | 196 |
 | Hours per story point | 2 |
-| **Budget at Completion (BAC)** | **372 person-hours (£5,580)** |
+| **Budget at Completion (BAC)** | **392 person-hours (£5,880)** |
 | Sprint 1 planned points | 56 → 112 h |
-| Sprint 2 planned points | 58 → 116 h |
-| Sprint 3 planned points | 72 → 144 h |
+| Sprint 2 planned points | 63 → 126 h |
+| Sprint 3 planned points | 77 → 154 h |
 
 ## 2. The formulas
 
@@ -47,8 +47,8 @@ are measured against, baselined at Sprint 1 planning and **not** re-baselined af
 |---|---|---|---|---|
 | 8 Nov 2026 | Sprint 0 complete | 0 | 0 | 0 |
 | 22 Nov 2026 | Sprint 1 complete | 56 | 112 | 1,680 |
-| 6 Dec 2026 | Sprint 2 complete | 114 | 228 | 3,420 |
-| 20 Dec 2026 | Sprint 3 complete | 186 | 372 | 5,580 |
+| 6 Dec 2026 | Sprint 2 complete | 119 | 238 | 3,570 |
+| 20 Dec 2026 | Sprint 3 complete | 196 | 392 | 5,880 |
 
 ## 4. Measurement table
 
@@ -60,8 +60,8 @@ hours in the GitHub issue as a comment so the figure is evidenced rather than re
 | Sprint | PV (h) | EV (h) | AC (h) | CV | SV | CPI | SPI | EAC (h) | VAC (h) |
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | 112 | _ | _ | _ | _ | _ | _ | _ | _ |
-| 2 | 228 | _ | _ | _ | _ | _ | _ | _ | _ |
-| 3 | 372 | _ | _ | _ | _ | _ | _ | _ | _ |
+| 2 | 238 | _ | _ | _ | _ | _ | _ | _ | _ |
+| 3 | 392 | _ | _ | _ | _ | _ | _ | _ | _ |
 
 ### Worked example — the arithmetic to copy, with illustrative Sprint 1 figures
 

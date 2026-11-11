@@ -1,0 +1,67 @@
+Story	Gunjan	Kasam	Saaket	Harshita	Reason for disagreement
+US01	3	3	3	3	Reference story; everyone understands the simple classification logic.
+US02	2	3	5	3	Different interpretations of handling tabs, empty lines and indentation.
+US03	3	5	3	2	Uncertainty about indentation width and nesting conversion rules.
+US04	5	3	5	2	Different assumptions about zero lines and percentage calculation.
+US05	2	3	5	3	Uncertainty about the number of comment-density bands and thresholds.
+US06	5	3	8	5	Different views on line-length limits and severity grading.
+US07	3	5	2	3	Recognising function definitions may involve different syntax cases.
+US08	5	3	8	5	Handling default arguments, annotations and complex parameter syntax.
+US09	8	5	13	8	Saaket considers whole-file parsing and function extraction more complex.
+US10	3	5	5	3	Different assumptions about which decision keywords count.
+US11	8	5	8	5	Different understanding of how decision points contribute to complexity.
+US12	5	8	5	3	Nested blocks and function boundaries may complicate depth calculation.
+US13	5	3	8	5	Uncertainty about penalty thresholds and how excess nesting is calculated.
+US14	2	3	5	3	Different assumptions about parameter-rating categories.
+US15	5	3	5	2	Different views on function-length thresholds and rating rules.
+US16	13	8	13	5	Maintainability index combines multiple measurements and requires formula interpretation.
+US17	8	5	8	13	Duplication detection and percentage calculation may require more complex logic.
+US18	8	5	13	8	Combining complexity, nesting and parameter ratings introduces integration decisions.
+US19	3	5	3	5	Different assumptions about how complexity findings are filtered.
+US20	5	3	5	3	Different interpretations of nesting limits and reporting conditions.
+US21	3	5	8	5	Function-length rule may involve additional threshold and reporting logic.
+US22	3	2	5	3	Different assumptions about parameter limits and warning conditions.
+US23	5	3	5	8	File-level comment ratios and rule reporting may require additional handling.
+US24	2	3	5	3	Different interpretations of line-length thresholds.
+US25	8	13	8	5	Detecting duplicated blocks is considered more complex than reporting simple measurements.
+US26	5	3	5	3	Uncertainty about severity bands and boundary conditions.
+US27	3	5	2	3	Different assumptions about empty severity lists and severity ordering.
+US28	5	3	8	5	Penalty weights may involve different severity-to-weight mappings.
+US29	8	13	8	5	Different views on score calculation, penalty aggregation and score limits.
+US30	3	2	5	3	Uncertainty about grade boundaries and score ranges.
+US31	5	8	5	3	Comparing reviews may require handling missing or differently structured data.
+US32	3	5	2	3	Different assumptions about how historical trends are determined.
+US33	5	8	5	8	Serialization format and handling different report fields.
+US34	8	5	13	8	Parsing malformed records and validating different data types.
+US35	3	5	5	3	Handling empty histories and calculating statistics.
+US36	13	8	13	21	File operations, persistence, error handling and integration make this substantially larger.
+
+
+
+These are the most interesting disagreements to discuss in your first round.
+US16 – maintainability_index()
+5–13 points
+Large disagreement
+
+Gunjan and Saaket consider the formula and combination of measurements complex. Harshita believes the existing measurements can be reused, reducing implementation effort.
+
+
+US25 – rule_duplication()
+5–13 points
+Large disagreement
+
+Kasam believes duplication detection may require substantial logic, while Harshita expects the rule to reuse existing duplication scores.
+
+
+US29 – score_from_issues()
+5–13 points
+Large disagreement
+
+Kasam expects more complexity in combining penalties and calculating a bounded score. Harshita expects a straightforward calculation.
+
+
+US36 – save_review and load_history()
+8–21 points
+Largest disagreement
+
+Harshita estimates 21 because of persistence and error handling. Kasam estimates 8 because he expects basic file operations to be sufficient.

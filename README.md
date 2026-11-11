@@ -25,7 +25,7 @@ project **#17, Software Code Review Tool**.
 | Report, video, packaging | 28 Dec–3 Jan 2027 | not started |
 | Submitted | 4 Jan 2027 | not started |
 
-**User stories:** 0 of 36 done · 0 of 186 story points · Sprint 1 backlog: 12 stories, 56 points
+**User stories:** 0 of 36 done · 0 of 196 story points · Sprint 1 backlog: 12 stories, 56 points
 **Tests:** 6 passing · **Coverage:** data model only
 
 <!-- PHASE: update this table and these two lines at every sprint review. -->
@@ -48,14 +48,13 @@ module.
 | Member | Student number | Username | GitHub | Slice | Stories | Points |
 |---|---|---|---|---|---|---|
 | Gunjan | 259059915 | `gsk17` | `gsk17` | scanning and line metrics | US01–US04, US06–US09, US36 | 46 |
-| Kasam | 259059933 | `khm12` | `kasam-leicester` | complexity metrics | US10, US12–US18, US20 | 50 |
-| Saaket | 269046020 | `ssl21` | `saaket-ssl` | rule engine and severity | US11, US19, US21–US27 | 45 |
-| Harshita | 269035432 | `hcg22` | `guduru0112` | scoring, history and persistence | US05, US28–US35 | 45 |
+| Kasam | 259059933 | `khm12` | `kasam-leicester` | complexity metrics | US10, US12–US18, US20 | 55 |
+| Saaket | 269046020 | `ssl21` | `saaket-ssl` | rule engine and severity | US11, US19, US21–US27 | 47 |
+| Harshita | 269035432 | `hcg22` | `guduru0112` | scoring, history and persistence | US05, US28–US35 | 48 |
 
 Each member owns a vertical slice, because the testing and research marks are assessed
 individually. The story numbers are not contiguous: after planning poker the per-member
-totals were 36/55/40/55, a 19-point spread, so two same-sprint swaps were made to bring
-them within 5 of each other — US05 ↔ US36 and US20 ↔ US11. Ownership is therefore per
+totals were uneven, so two same-sprint swaps were made to bring them closer together — US05 ↔ US36 and US20 ↔ US11. Ownership is therefore per
 function, not per module.
 
 **Repository:** https://github.com/gsk17/CodeGauge-SoftwareCodeReviewTool

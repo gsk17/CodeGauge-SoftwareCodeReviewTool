@@ -46,40 +46,40 @@ burn is 5.6 points per day.
 | 9 | Fri 20 Nov | 5.6 | _ | _ | |
 | 10 | Sun 22 Nov | 0.0 | _ | _ | sprint review and retrospective |
 
-## 3. Sprint 2 — 23 November to 6 December 2026, 58 points
+## 3. Sprint 2 — 23 November to 6 December 2026, 63 points
 
-Ideal burn 5.8 points per day.
+Ideal burn 6.3 points per day.
 
 | Day | Date | Ideal remaining | Actual remaining | Closed that day | Note |
 |---|---|---|---|---|---|
-| 0 | Mon 23 Nov | 58.0 | 58 | — | sprint planning |
-| 1 | Tue 24 Nov | 52.2 | _ | _ | |
-| 2 | Wed 25 Nov | 46.4 | _ | _ | |
-| 3 | Thu 26 Nov | 40.6 | _ | _ | |
-| 4 | Fri 27 Nov | 34.8 | _ | _ | |
-| 5 | Mon 30 Nov | 29.0 | _ | _ | |
-| 6 | Tue 1 Dec | 23.2 | _ | _ | |
-| 7 | Wed 2 Dec | 17.4 | _ | _ | |
-| 8 | Thu 3 Dec | 11.6 | _ | _ | |
-| 9 | Fri 4 Dec | 5.8 | _ | _ | |
+| 0 | Mon 23 Nov | 63.0 | 63 | — | sprint planning |
+| 1 | Tue 24 Nov | 56.7 | _ | _ | |
+| 2 | Wed 25 Nov | 50.4 | _ | _ | |
+| 3 | Thu 26 Nov | 44.1 | _ | _ | |
+| 4 | Fri 27 Nov | 37.8 | _ | _ | |
+| 5 | Mon 30 Nov | 31.5 | _ | _ | |
+| 6 | Tue 1 Dec | 25.2 | _ | _ | |
+| 7 | Wed 2 Dec | 18.9 | _ | _ | |
+| 8 | Thu 3 Dec | 12.6 | _ | _ | |
+| 9 | Fri 4 Dec | 6.3 | _ | _ | |
 | 10 | Sun 6 Dec | 0.0 | _ | _ | sprint review and retrospective |
 
-## 4. Sprint 3 — 7 to 20 December 2026, 72 points
+## 4. Sprint 3 — 7 to 20 December 2026, 77 points
 
-Ideal burn 7.2 points per day.
+Ideal burn 7.7 points per day.
 
 | Day | Date | Ideal remaining | Actual remaining | Closed that day | Note |
 |---|---|---|---|---|---|
-| 0 | Mon 7 Dec | 72.0 | 72 | — | sprint planning |
-| 1 | Tue 8 Dec | 64.8 | _ | _ | |
-| 2 | Wed 9 Dec | 57.6 | _ | _ | |
-| 3 | Thu 10 Dec | 50.4 | _ | _ | |
-| 4 | Fri 11 Dec | 43.2 | _ | _ | |
-| 5 | Mon 14 Dec | 36.0 | _ | _ | |
-| 6 | Tue 15 Dec | 28.8 | _ | _ | |
-| 7 | Wed 16 Dec | 21.6 | _ | _ | |
-| 8 | Thu 17 Dec | 14.4 | _ | _ | |
-| 9 | Fri 18 Dec | 7.2 | _ | _ | |
+| 0 | Mon 7 Dec | 77.0 | 77 | — | sprint planning |
+| 1 | Tue 8 Dec | 69.3 | _ | _ | |
+| 2 | Wed 9 Dec | 61.6 | _ | _ | |
+| 3 | Thu 10 Dec | 53.9 | _ | _ | |
+| 4 | Fri 11 Dec | 46.2 | _ | _ | |
+| 5 | Mon 14 Dec | 38.5 | _ | _ | |
+| 6 | Tue 15 Dec | 30.8 | _ | _ | |
+| 7 | Wed 16 Dec | 23.1 | _ | _ | |
+| 8 | Thu 17 Dec | 15.4 | _ | _ | |
+| 9 | Fri 18 Dec | 7.7 | _ | _ | |
 | 10 | Sun 20 Dec | 0.0 | _ | _ | sprint review and retrospective |
 
 ## 5. Velocity
@@ -91,9 +91,9 @@ closes in, not the one it started in.
 | Sprint | Committed | Completed | Carried over | Velocity |
 |---|---|---|---|---|
 | 1 | 56 | _ | _ | _ |
-| 2 | 58 | _ | _ | _ |
+| 2 | 63 | _ | _ | _ |
 | 3 | 65 | _ | _ | _ |
-| **Average** | **62** | **_** | | **_** |
+| **Average** | **65** | **_** | | **_** |
 
 **Per-member completion**, which is the figure the individual marks depend on — every member
 must finish all nine of their stories:
@@ -101,9 +101,9 @@ must finish all nine of their stories:
 | Member | Sprint 1 | Sprint 2 | Sprint 3 | Total (target 48) |
 |---|---|---|---|---|
 | Gunjan (M1, scanner) | 3/9 | /11 | /26 | 3/46 |
-| Kasam (M2, complexity) | 5/13 | /16 | /21 | 5/50 |
-| Saaket (M3, rules) | 5/18 | /13 | /14 | 5/45 |
-| Harshita (M4, scoring) | 5/16 | /18 | /11 | 5/45 |
+| Kasam (M2, complexity) | 5/13 | /18 | /24 | 5/55 |
+| Saaket (M3, rules) | 5/18 | /13 | /16 | 5/47 |
+| Harshita (M4, scoring) | 5/16 | /21 | /11 | 5/48 |
 
 ## 6. Plotting the charts for the report and the video
 

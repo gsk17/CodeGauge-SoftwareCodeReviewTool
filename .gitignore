@@ -8,3 +8,7 @@ reviews.dat
 .idea/usage.statistics.xml
 .idea/shelf/
 .superpowers/
+
+# Forward effort estimates for every story; kept local. Only the hours for
+# stories actually completed are recorded in docs/measurement/time-log.md.
+docs/measurement/time-full.md

@@ -1,107 +1,144 @@
 # Planning Poker Record
 
-Project: CodeGauge - CO7095 project #17, Software Code Review Tool
-Session date: `<fill in>` — Sprint 1 planning
-Participants: Gunjan, Kasam, Saaket, Harshita (all four must be present)
+Project: CodeGauge — CO7095 project #17
+Deck: Fibonacci **1, 3, 5, 8, 13, 21** · Platform: planningpoker.com
+Participants: Gunjan (gsk17), Kasam (khm12), Saaket (ssl21), Harshita (hcg22) — all four present
+Reference story: **US01 `classify_line` = 3 points**
+
+All 36 product backlog stories were estimated over two rounds, with a structured
+discussion between them. The round 2 values are the agreed estimates.
 
 ## Rules the team agreed
 
-- Deck: Fibonacci **1, 3, 5, 8, 13, 21**.
-- Everyone reveals simultaneously; no anchoring by speaking first.
-- Maximum **3 rounds** per story. If round 3 does not converge, the **highest** card stands
-  and the reason for the spread is recorded in the Notes column — a persistent spread is
-  information, usually that the story is under-specified.
-- Reference story: **US01 `classify_line` = 3 points**. Every other estimate is relative to it.
-- A story estimated at 13 or 21 is too big and is split before the sprint starts.
+- Fibonacci deck, maximum 3 rounds per story.
+- Everyone reveals simultaneously; nobody speaks a number first, so no anchoring.
+- A spread of 5 points or more is discussed before re-voting, with the highest and the
+  lowest estimator each explaining their reasoning.
+- The points carried into the sprint backlogs are the team's **agreed** values, not the
+  platform's computed score.
+- A story estimated at 13 or above is a candidate for splitting.
 
-## Evidence required
+## Evidence
 
-Photograph or screenshot **each round** of each story — four cards visible — and save them as
-`docs/measurement/poker/US<NN>-round<N>.jpg`. The rubric asks for story points
-"estimated via Planning Poker **with evidence**"; the table below without the images is not
-evidence.
+| Artifact | Path |
+|---|---|
+| Round 1, 36 screenshots | `poker/Planning Poker/Round1/1..36.png` |
+| Round 1, platform export | `poker/Planning Poker/Round1/planningpoker-export-score.csv` |
+| Round 1, session PDF | `poker/Planning Poker/Round1/PlanningPoker.com - Round1.pdf` |
+| Round 1, per-member votes and reasons | `poker/Planning Poker/Round1/Dissagreement_round1.txt` |
+| Discussion outcomes | `poker/Planning Poker/Round1/Discussion_outcomes.txt` |
+| Round 2, 36 screenshots | `poker/Planning Poker/Round2/1..36.png` |
+| Round 2, platform export | `poker/Planning Poker/Round2/planningpoker-export-Round2.csv` |
+| Round 2, session PDF | `poker/Planning Poker/Round2/PlanningPoker.com - Round2.pdf` |
+| Story list used in the session | `poker-import.txt` |
 
-## The estimates brought into the session
+## What the two rounds did
 
-The "seed" column is the estimate from the implementation plan. It is a starting point for
-discussion, **not** the agreed value — the whole point of the session is that the four
-owners estimate their own work. Record what the team actually agrees in the "Agreed" column
-even where it differs from the seed, then update the GitHub issue point field to match.
-
-### Gunjan — M1, scanning and line metrics
-
-| ID | Story | Seed | R1 cards (G/K/S/H) | R2 | R3 | Agreed | Notes |
-|---|---|---|---|---|---|---|---|
-| US01 | `classify_line` — blank, comment or code | 3 | / / / | | | | reference story |
-| US02 | `count_leading_spaces` — indentation width | 3 | / / / | | | | |
-| US07 | `is_function_header` — recognise a definition | 8 | / / / | | | | |
-| US03 | `depth_from_indent` — indentation to depth | 5 | / / / | | | | |
-| US08 | `count_parameters` — parameters in a signature | 8 | / / / | | | | |
-| US04 | `comment_ratio_percent` — comment density | 3 | / / / | | | | |
-| US05 | `comment_ratio_band` — band the density | 5 | / / / | | | | |
-| US06 | `line_length_grade` — grade a line's length | 5 | / / / | | | | |
-| US09 | `scan_file` — file to FunctionRecords | 8 | / / / | | | | depends on US10 |
-| | **Total** | **48** | | | | | |
-
-### Kasam — M2, complexity metrics
-
-| ID | Story | Seed | R1 cards (G/K/S/H) | R2 | R3 | Agreed | Notes |
-|---|---|---|---|---|---|---|---|
-| US10 | `decision_points` — sum the keyword counts | 5 | / / / | | | | US09 depends on this |
-| US11 | `cyclomatic_complexity` — E - N + 2P | 8 | / / / | | | | |
-| US12 | `max_nesting_depth` — deepest level | 5 | / / / | | | | |
-| US13 | `nesting_penalty` — penalty for excess nesting | 3 | / / / | | | | |
-| US14 | `parameter_count_rating` — rate a count | 3 | / / / | | | | |
-| US17 | `duplicate_block_score` — duplication percentage | 8 | / / / | | | | |
-| US15 | `function_length_rating` — rate a length | 5 | / / / | | | | |
-| US18 | `complexity_rating` — combined four-way rating | 8 | / / / | | | | |
-| US16 | `maintainability_index` — 0-100 index | 3 | / / / | | | | |
-| | **Total** | **48** | | | | | |
-
-### Saaket — M3, rule engine and severity
-
-| ID | Story | Seed | R1 cards (G/K/S/H) | R2 | R3 | Agreed | Notes |
-|---|---|---|---|---|---|---|---|
-| US26 | `classify_severity` — band against the limit | 8 | / / / | | | | every rule depends on this |
-| US19 | `rule_complexity` | 5 | / / / | | | | |
-| US20 | `rule_nesting` | 5 | / / / | | | | |
-| US21 | `rule_length` | 5 | / / / | | | | |
-| US22 | `rule_params` | 5 | / / / | | | | |
-| US23 | `rule_comment_ratio` | 5 | / / / | | | | runs in the opposite direction |
-| US24 | `rule_line_length` | 5 | / / / | | | | |
-| US25 | `rule_duplication` | 5 | / / / | | | | |
-| US27 | `combine_severities` — worst of a list | 5 | / / / | | | | |
-| | **Total** | **48** | | | | | |
-
-### Harshita — M4, scoring, history and persistence
-
-| ID | Story | Seed | R1 cards (G/K/S/H) | R2 | R3 | Agreed | Notes |
-|---|---|---|---|---|---|---|---|
-| US28 | `weighted_penalty` — weight per severity | 3 | / / / | | | | |
-| US29 | `score_from_issues` — 0-100 score | 8 | / / / | | | | the critical-issue cap |
-| US30 | `grade_band` — letter grade | 3 | / / / | | | | |
-| US33 | `serialise_report` — report to text lines | 5 | / / / | | | | |
-| US34 | `parse_record_line` — parse a stored line | 8 | / / / | | | | corrupt-line handling |
-| US31 | `compare_scores` — classify the change | 5 | / / / | | | | |
-| US36 | `save_review` / `load_history` | 8 | / / / | | | | round-trip |
-| US32 | `trend_direction` — trend across history | 5 | / / / | | | | |
-| US35 | `history_statistics` — min, max, mean | 3 | / / / | | | | |
-| | **Total** | **48** | | | | | |
-
-## Balance check after the session
-
-The brief requires the total story points per member to be **relatively equal**. Complete
-this after the agreed column is filled:
-
-| Member | Agreed total | Difference from mean |
+| | Total | Note |
 |---|---|---|
-| Gunjan | _ | _ |
-| Kasam | _ | _ |
-| Saaket | _ | _ |
-| Harshita | _ | _ |
-| **Mean** | **_** | |
+| Round 1 | **280 points** | only US01, the reference story, was unanimous |
+| Round 2 | **196 points** | 27 of the 36 stories moved after discussion |
+| **Final agreed** | **196 points** | the round 2 values, carried into the sprint backlogs |
 
-If any member is more than 5 points from the mean, move a story between members and
-re-estimate the moved story, then update this table and the GitHub issue assignments. Record
-what moved and why — a deliberate, documented rebalance reads far better than four totals
-that happen to be unequal.
+Round 1 produced wide spreads, which is what an honest first round looks like on an
+unfamiliar problem. **Sixteen stories had a spread of 5 points or more**, and eight had a
+spread of 8 or more: US09, US16, US17, US18, US25, US29, US34 and US36.
+
+The aggregate fell 280 → 196, a reduction of 30%. The direction is not an
+accident. Almost every first-round estimate was high because nobody had yet agreed how
+much existing work each story could reuse, and the discussion was largely about reuse —
+the outcomes below say so explicitly.
+
+## The four largest disagreements, and how they resolved
+
+| Story | Spread | The disagreement | Outcome |
+|---|---|---|---|
+| **US36** `save_review` / `load_history` | 8–21 | Harshita estimated 21 for persistence and error handling; Kasam estimated 8, expecting basic file operations to suffice | settled at **13** — still the largest story in the project and a candidate for splitting |
+| **US16** `maintainability_index` | 5–13 | Gunjan and Saaket saw the formula and the combination of measurements as complex; Harshita expected the existing measurements to be reusable | **8** — agreed to use the existing complexity and documentation measurements rather than compute new ones |
+| **US25** `rule_duplication` | 5–13 | Kasam expected substantial detection logic; Harshita expected the rule to reuse the existing duplication score | **8** — agreed to reuse the existing duplication measurement rather than build separate detection |
+| **US29** `score_from_issues` | 5–13 | Kasam expected complexity in aggregating penalties and bounding the score; Harshita expected a straightforward calculation | **8** — agreed to reuse the severity weights and the existing issue data |
+
+Two more were resolved the same way: **US04** `comment_ratio_percent` — agreed on a
+straightforward percentage with defined zero-line handling — and **US12**
+`max_nesting_depth`, agreed to reuse the existing function and indentation information.
+
+Every one came down to the same question: how much can this story reuse? That is why the
+totals fell so sharply between the rounds, and it is the single most useful thing the
+session produced, because it settled the architecture question as well as the numbers.
+
+## Full record
+
+R1 votes are the four individual cards from round 1. R1 and R2 are the platform's computed
+score for each round. **Final** is the team's agreed value, which is what the sprint
+backlogs, the burndown and the EVM baseline all use.
+
+| ID | Function | Owner | R1 votes G/K/S/H | R1 | R2 / Final |
+|---|---|---|---|---|---|
+| US01 | `classify_line` | Gunjan | 3/3/3/3 | 3 | **3** |
+| US02 | `count_leading_spaces` | Gunjan | 2/3/5/3 | 5 | **3** |
+| US03 | `depth_from_indent` | Gunjan | 3/5/3/2 | 5 | **3** |
+| US04 | `comment_ratio_percent` | Gunjan | 5/3/5/2 | 5 | **3** |
+| US05 | `comment_ratio_band` | Harshita | 2/3/5/3 | 5 | **3** |
+| US06 | `line_length_grade` | Gunjan | 5/3/8/5 | 8 | **5** |
+| US07 | `is_function_header` | Gunjan | 3/5/2/3 | 5 | **3** |
+| US08 | `count_parameters` | Gunjan | 5/3/8/5 | 8 | **5** |
+| US09 | `scan_file` | Gunjan | 8/5/13/8 | 13 | **8** |
+| US10 | `decision_points` | Kasam | 3/5/5/3 | 5 | **5** |
+| US11 | `cyclomatic_complexity` | Saaket | 8/5/8/5 | 8 | **8** |
+| US12 | `max_nesting_depth` | Kasam | 5/8/5/3 | 8 | **5** |
+| US13 | `nesting_penalty` | Kasam | 5/3/8/5 | 8 | **5** |
+| US14 | `parameter_count_rating` | Kasam | 2/3/5/3 | 5 | **3** |
+| US15 | `function_length_rating` | Kasam | 5/3/5/2 | 5 | **5** |
+| US16 | `maintainability_index` | Kasam | 13/8/13/5 | 13 | **8** |
+| US17 | `duplicate_block_score` | Kasam | 8/5/8/13 | 13 | **8** |
+| US18 | `complexity_rating` | Kasam | 8/5/13/8 | 13 | **8** |
+| US19 | `rule_complexity` | Saaket | 3/5/3/5 | 5 | **5** |
+| US20 | `rule_nesting` | Kasam | 5/3/5/3 | 5 | **3** |
+| US21 | `rule_length` | Saaket | 3/5/8/5 | 8 | **5** |
+| US22 | `rule_params` | Saaket | 3/2/5/3 | 5 | **3** |
+| US23 | `rule_comment_ratio` | Saaket | 5/3/5/8 | 8 | **5** |
+| US24 | `rule_line_length` | Saaket | 2/3/5/3 | 5 | **3** |
+| US25 | `rule_duplication` | Saaket | 8/13/8/5 | 13 | **8** |
+| US26 | `classify_severity` | Saaket | 5/3/5/3 | 5 | **5** |
+| US27 | `combine_severities` | Saaket | 3/5/2/3 | 5 | **3** |
+| US28 | `weighted_penalty` | Harshita | 5/3/8/5 | 8 | **5** |
+| US29 | `score_from_issues` | Harshita | 8/13/8/5 | 13 | **8** |
+| US30 | `grade_band` | Harshita | 3/2/5/3 | 5 | **3** |
+| US31 | `compare_scores` | Harshita | 5/8/5/3 | 8 | **5** |
+| US32 | `trend_direction` | Harshita | 3/5/2/3 | 5 | **3** |
+| US33 | `serialise_report` | Harshita | 5/8/5/8 | 8 | **5** |
+| US34 | `parse_record_line` | Harshita | 8/5/13/8 | 13 | **8** |
+| US35 | `history_statistics` | Harshita | 3/5/5/3 | 5 | **5** |
+| US36 | `save_review and load_history` | Gunjan | 13/8/13/21 | 21 | **13** |
+
+## Per-member workload
+
+The agreed points produced an uneven split, so two same-sprint **swaps** were made to meet
+the brief's requirement that per-member totals be relatively equal. Swapping rather than
+moving preserved the rule that every member has at least three stories in every sprint — a
+straight move would have left two members with only two stories in Sprint 3.
+
+- US05 `comment_ratio_band` Gunjan ⇄ US36 `save_review` / `load_history` Harshita
+- US20 `rule_nesting` Saaket ⇄ US11 `cyclomatic_complexity` Kasam
+
+| Member | Before swaps | After swaps | Stories |
+|---|---|---|---|
+| Gunjan | **46** | 9 |
+| Kasam | **50** | 9 |
+| Saaket | **45** | 9 |
+| Harshita | **45** | 9 |
+| **Total** | **196** | **196** | **36** |
+
+Spread fell from 18 points to 9. Ownership is therefore per **function**, not per module:
+Saaket owns US11 inside `core/complexity.py`, and Gunjan owns US36 inside
+`core/storage.py`.
+
+## Sprint distribution
+
+| Sprint | Stories | Points | Ideal burn |
+|---|---|---|---|
+| Sprint 1, 9–22 Nov 2026 | 12 | 56 | 5.6/day |
+| Sprint 2, 23 Nov–6 Dec 2026 | 12 | 63 | 6.3/day |
+| Sprint 3, 7–20 Dec 2026 | 12 | 77 | 7.7/day |
+
+At 2 person-hours per point, the EVM Budget at Completion is **392 person-hours**.

@@ -11,18 +11,23 @@ A file can be scanned into per-function records, its complexity measured, the fi
 
 | ID | Owner | Story | Points | Function | Status | Start | End |
 |---|---|---|---|---|---|---|---|
-| US01 | Gunjan | As a reviewer I want each source line classified as blank, comment or code so that the tool can count the three kinds separately | 3 | `classify_line` | To do | | |
-| US02 | Gunjan | As a reviewer I want a line's indentation measured in spaces so that nesting depth can be derived from it | 3 | `count_leading_spaces` | To do | | |
-| US07 | Gunjan | As a reviewer I want function definition lines recognised so that the tool knows where each function starts | 3 | `is_function_header` | To do | | |
-| US10 | Kasam | As a reviewer I want the decision keywords in a function totalled so that cyclomatic complexity can be computed from them | 5 | `decision_points` | To do | | |
-| US12 | Kasam | As a reviewer I want the deepest nesting level in a function found so that deeply nested code can be flagged | 5 | `max_nesting_depth` | To do | | |
-| US20 | Kasam | As a reviewer I want functions nested too deeply reported so that I know which functions to flatten | 3 | `rule_nesting` | To do | | |
-| US11 | Saaket | As a reviewer I want each function's cyclomatic complexity computed so that over-complex functions can be flagged | 8 | `cyclomatic_complexity` | To do | | |
-| US19 | Saaket | As a reviewer I want functions over the complexity limit reported so that I know which functions to simplify | 5 | `rule_complexity` | To do | | |
-| US26 | Saaket | As a reviewer I want a measurement banded against its limit so that every rule grades its findings on one consistent scale | 5 | `classify_severity` | To do | | |
-| US28 | Harshita | As a reviewer I want each severity to carry a penalty weight so that serious findings cost more than trivial ones | 5 | `weighted_penalty` | To do | | |
-| US29 | Harshita | As a reviewer I want a quality score from the issues found so that a file's state is a single number | 8 | `score_from_issues` | To do | | |
-| US30 | Harshita | As a reviewer I want a letter grade from the score so that the result is readable at a glance | 3 | `grade_band` | To do | | |
+| US01 | Gunjan | As a reviewer I want each source line classified as blank, comment or code so that the tool can count the three kinds separately | 3 | `classify_line` | **Done** | 10 Nov | 11 Nov |
+| US02 | Gunjan | As a reviewer I want a line's indentation measured in spaces so that nesting depth can be derived from it | 3 | `count_leading_spaces` | To do | 13 Nov | 17 Nov |
+| US07 | Gunjan | As a reviewer I want function definition lines recognised so that the tool knows where each function starts | 3 | `is_function_header` | To do | 18 Nov | 20 Nov |
+| US10 | Kasam | As a reviewer I want the decision keywords in a function totalled so that cyclomatic complexity can be computed from them | 5 | `decision_points` | **Done** | 11 Nov | 11 Nov |
+| US12 | Kasam | As a reviewer I want the deepest nesting level in a function found so that deeply nested code can be flagged | 5 | `max_nesting_depth` | To do | 13 Nov | 17 Nov |
+| US20 | Kasam | As a reviewer I want functions nested too deeply reported so that I know which functions to flatten | 3 | `rule_nesting` | To do | 18 Nov | 20 Nov |
+| US11 | Saaket | As a reviewer I want each function's cyclomatic complexity computed so that over-complex functions can be flagged | 8 | `cyclomatic_complexity` | To do | 12 Nov | 17 Nov |
+| US19 | Saaket | As a reviewer I want functions over the complexity limit reported so that I know which functions to simplify | 5 | `rule_complexity` | To do | 18 Nov | 20 Nov |
+| US26 | Saaket | As a reviewer I want a measurement banded against its limit so that every rule grades its findings on one consistent scale | 5 | `classify_severity` | **Done** | 11 Nov | 11 Nov |
+| US28 | Harshita | As a reviewer I want each severity to carry a penalty weight so that serious findings cost more than trivial ones | 5 | `weighted_penalty` | **Done** | 11 Nov | 11 Nov |
+| US29 | Harshita | As a reviewer I want a quality score from the issues found so that a file's state is a single number | 8 | `score_from_issues` | To do | 17 Nov | 20 Nov |
+| US30 | Harshita | As a reviewer I want a letter grade from the score so that the result is readable at a glance | 3 | `grade_band` | To do | 13 Nov | 16 Nov |
+
+## Progress
+
+4 of 12 stories done, 18 of 56 points, as at 11 November 2026. Daily figures in
+[../measurement/burndown-and-velocity.md](../measurement/burndown-and-velocity.md).
 
 ## Capacity per member
 

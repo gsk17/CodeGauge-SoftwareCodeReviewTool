@@ -11,9 +11,9 @@ points are the values agreed in planning poker (see
 | Priority | Stories | Points |
 |---|---|---|
 | MUST | 17 | 95 |
-| SHOULD | 11 | 51 |
+| SHOULD | 11 | 61 |
 | COULD | 8 | 40 |
-| **Total** | **36** | **186** |
+| **Total** | **36** | **196** |
 
 ## Gunjan - scanning and line metrics (46 points)
 
@@ -29,7 +29,7 @@ points are the values agreed in planning poker (see
 | US09 | MUST | As a reviewer I want a source file reduced to a record per function so that every later stage works on numbers instead of text | 8 | 3 | `core/scanner.py :: scan_file` | `feature/<m1-username>-us09-scan-file` |
 | US36 | MUST | As a reviewer I want reviews appended to a file and read back so that my review history survives restarting the tool | 13 | 3 | `core/storage.py :: save_review and load_history` | `feature/<m1-username>-us36-save-and-load-history` |
 
-## Kasam - complexity metrics (50 points)
+## Kasam - complexity metrics (55 points)
 
 | ID | MoSCoW | Story | Points | Sprint | Function | Branch |
 |---|---|---|---|---|---|---|
@@ -37,13 +37,13 @@ points are the values agreed in planning poker (see
 | US12 | MUST | As a reviewer I want the deepest nesting level in a function found so that deeply nested code can be flagged | 5 | 1 | `core/complexity.py :: max_nesting_depth` | `feature/<m2-username>-us12-max-nesting-depth` |
 | US20 | MUST | As a reviewer I want functions nested too deeply reported so that I know which functions to flatten | 3 | 1 | `core/rules.py :: rule_nesting` | `feature/<m2-username>-us20-rule-nesting` |
 | US13 | COULD | As a reviewer I want penalty points charged for excess nesting so that the score reflects how far past the limit the code is | 5 | 2 | `core/complexity.py :: nesting_penalty` | `feature/<m2-username>-us13-nesting-penalty` |
-| US14 | SHOULD | As a reviewer I want a parameter count rated so that the report can describe it in words | 3 | 2 | `core/complexity.py :: parameter_count_rating` | `feature/<m2-username>-us14-parameter-count-rating` |
+| US14 | SHOULD | As a reviewer I want a parameter count rated so that the report can describe it in words | 5 | 2 | `core/complexity.py :: parameter_count_rating` | `feature/<m2-username>-us14-parameter-count-rating` |
 | US17 | COULD | As a reviewer I want duplication expressed as a percentage so that copied code can be flagged | 8 | 2 | `core/complexity.py :: duplicate_block_score` | `feature/<m2-username>-us17-duplicate-block-score` |
-| US15 | SHOULD | As a reviewer I want a function's length rated so that over-long functions can be described in words | 5 | 3 | `core/complexity.py :: function_length_rating` | `feature/<m2-username>-us15-function-length-rating` |
+| US15 | SHOULD | As a reviewer I want a function's length rated so that over-long functions can be described in words | 8 | 3 | `core/complexity.py :: function_length_rating` | `feature/<m2-username>-us15-function-length-rating` |
 | US16 | COULD | As a reviewer I want a maintainability index per function so that complexity and documentation are weighed together | 8 | 3 | `core/complexity.py :: maintainability_index` | `feature/<m2-username>-us16-maintainability-index` |
 | US18 | SHOULD | As a reviewer I want complexity, nesting and parameters combined into one rating so that the report has a single per-function verdict | 8 | 3 | `core/complexity.py :: complexity_rating` | `feature/<m2-username>-us18-complexity-rating` |
 
-## Saaket - rule engine and severity (45 points)
+## Saaket - rule engine and severity (47 points)
 
 | ID | MoSCoW | Story | Points | Sprint | Function | Branch |
 |---|---|---|---|---|---|---|
@@ -53,18 +53,18 @@ points are the values agreed in planning poker (see
 | US21 | SHOULD | As a reviewer I want over-long functions reported so that I know which functions to split | 5 | 2 | `core/rules.py :: rule_length` | `feature/<m3-username>-us21-rule-length` |
 | US22 | SHOULD | As a reviewer I want functions with too many parameters reported so that I know which signatures to simplify | 3 | 2 | `core/rules.py :: rule_params` | `feature/<m3-username>-us22-rule-params` |
 | US23 | SHOULD | As a reviewer I want insufficiently commented files reported so that I know which files need documenting | 5 | 2 | `core/rules.py :: rule_comment_ratio` | `feature/<m3-username>-us23-rule-comment-ratio` |
-| US24 | SHOULD | As a reviewer I want over-long lines reported so that I know which lines to wrap | 3 | 3 | `core/rules.py :: rule_line_length` | `feature/<m3-username>-us24-rule-line-length` |
+| US24 | SHOULD | As a reviewer I want over-long lines reported so that I know which lines to wrap | 5 | 3 | `core/rules.py :: rule_line_length` | `feature/<m3-username>-us24-rule-line-length` |
 | US25 | SHOULD | As a reviewer I want duplicated blocks reported so that I know which code to factor out | 8 | 3 | `core/rules.py :: rule_duplication` | `feature/<m3-username>-us25-rule-duplication` |
 | US27 | COULD | As a reviewer I want a list of severities reduced to the worst one so that a function can be summarised by its most serious finding | 3 | 3 | `core/severity.py :: combine_severities` | `feature/<m3-username>-us27-combine-severities` |
 
-## Harshita - scoring, history and persistence (45 points)
+## Harshita - scoring, history and persistence (48 points)
 
 | ID | MoSCoW | Story | Points | Sprint | Function | Branch |
 |---|---|---|---|---|---|---|
 | US28 | MUST | As a reviewer I want each severity to carry a penalty weight so that serious findings cost more than trivial ones | 5 | 1 | `core/scoring.py :: weighted_penalty` | `feature/<m4-username>-us28-weighted-penalty` |
 | US29 | MUST | As a reviewer I want a quality score from the issues found so that a file's state is a single number | 8 | 1 | `core/scoring.py :: score_from_issues` | `feature/<m4-username>-us29-score-from-issues` |
 | US30 | MUST | As a reviewer I want a letter grade from the score so that the result is readable at a glance | 3 | 1 | `core/scoring.py :: grade_band` | `feature/<m4-username>-us30-grade-band` |
-| US31 | SHOULD | As a reviewer I want two reviews compared so that I can see whether a file improved or regressed | 5 | 2 | `core/history.py :: compare_scores` | `feature/<m4-username>-us31-compare-scores` |
+| US31 | SHOULD | As a reviewer I want two reviews compared so that I can see whether a file improved or regressed | 8 | 2 | `core/history.py :: compare_scores` | `feature/<m4-username>-us31-compare-scores` |
 | US33 | MUST | As a reviewer I want a report turned into text lines so that it can be stored without a database | 5 | 2 | `core/storage.py :: serialise_report` | `feature/<m4-username>-us33-serialise-report` |
 | US34 | MUST | As a reviewer I want stored lines parsed back and corrupt ones rejected so that one bad line does not destroy my history | 8 | 2 | `core/storage.py :: parse_record_line` | `feature/<m4-username>-us34-parse-record-line` |
 | US05 | COULD | As a reviewer I want comment density banded so that the report can describe it in words | 3 | 3 | `core/line_metrics.py :: comment_ratio_band` | `feature/<m4-username>-us05-comment-ratio-band` |

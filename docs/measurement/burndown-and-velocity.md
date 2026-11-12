@@ -37,7 +37,7 @@ burn is 5.6 points per day.
 | 0 | Mon 9 Nov | 56.0 | 56 | — | sprint planning |
 | 1 | Tue 10 Nov | 50.4 | 56 | — | US01 started; three members awaiting repo access |
 | 2 | Wed 11 Nov | 44.8 | 38 | US01 US10 US26 US28 | four stories merged, one per member |
-| 3 | Thu 12 Nov | 39.2 | _ | _ | |
+| 3 | Thu 12 Nov | 39.2 | 38 | — | US11 started; random-based black-box tests added to the four closed stories |
 | 4 | Fri 13 Nov | 33.6 | _ | _ | |
 | 5 | Mon 16 Nov | 28.0 | _ | _ | |
 | 6 | Tue 17 Nov | 22.4 | _ | _ | |

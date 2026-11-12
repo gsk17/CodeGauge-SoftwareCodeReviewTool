@@ -50,3 +50,36 @@ committed the same day. Sprint 1 runs 9–22 November 2026.
 
 **Sprint status at end of day 2:** 4 of 12 stories done, 18 of 56 points.
 38 remaining against an ideal of 44.8 — ahead of the line.
+
+---
+
+## 2026-11-12 (Sprint 1, day 3)
+
+**Saaket**
+- Yesterday: US26 `classify_severity` complete and merged; reviewed and merged Kasam's US10
+- Today: US11 `cyclomatic_complexity` — failing tests written and observed failing, then
+  the implementation. This is the first story to carry both black-box packages
+- Impediments: none. US11 edits `core/complexity.py`, which is Kasam's module, so the two
+  of us agreed the boundary before starting - ownership is per function, not per file
+
+**Gunjan**
+- Yesterday: US01 merged; pushed the Sprint 0 planning artifacts and the poker evidence
+- Today: adopted the round 2 poker values across every document — 196 points, sprint
+  totals 56/63/77, EVM baseline 392 person-hours. Added the random-based black-box tests
+  the brief requires and that the first four stories had shipped without
+- Impediments: the Definition of Done said only "black-box test cases" and did not name
+  both required strategies, which is how the omission reached four merged stories. Both
+  it and the story workflow now name the two packages explicitly
+
+**Kasam**
+- Yesterday: US10 merged
+- Today: no story work; US12 starts tomorrow
+- Impediments: none
+
+**Harshita**
+- Yesterday: US28 merged; reviewed and merged Saaket's US26
+- Today: no story work; US30 starts tomorrow
+- Impediments: none
+
+**Sprint status at end of day 3:** 4 of 12 stories done, 18 of 56 points. 38 remaining
+against an ideal of 39.2 — level with the line. US11 is in progress and due 17 Nov.

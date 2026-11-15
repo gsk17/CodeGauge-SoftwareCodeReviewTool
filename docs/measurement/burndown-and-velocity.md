@@ -38,7 +38,8 @@ burn is 5.6 points per day.
 | 1 | Tue 10 Nov | 50.4 | 56 | — | US01 started; three members awaiting repo access |
 | 2 | Wed 11 Nov | 44.8 | 38 | US01 US10 US26 US28 | four stories merged, one per member |
 | 3 | Thu 12 Nov | 39.2 | 38 | — | US11 started; random-based black-box tests added to the four closed stories |
-| 4 | Fri 13 Nov | 33.6 | _ | _ | |
+| 4 | Fri 13 Nov | 33.6 | 38 | — | no work on any story; US11's implementation and the planned starts for US02, US12 and US30 all slipped |
+| — | Sun 15 Nov | — | 30 | US11 | unplanned weekend session to recover Friday; US11 merged, and US02, US12, US19 and US30 all started. Not a planned working day, so no ideal figure |
 | 5 | Mon 16 Nov | 28.0 | _ | _ | |
 | 6 | Tue 17 Nov | 22.4 | _ | _ | |
 | 7 | Wed 18 Nov | 16.8 | _ | _ | |
@@ -102,7 +103,7 @@ must finish all nine of their stories:
 |---|---|---|---|---|
 | Gunjan (M1, scanner) | 3/9 | /11 | /26 | 3/46 |
 | Kasam (M2, complexity) | 5/13 | /18 | /24 | 5/55 |
-| Saaket (M3, rules) | 5/18 | /13 | /16 | 5/47 |
+| Saaket (M3, rules) | 13/18 | /13 | /16 | 13/47 |
 | Harshita (M4, scoring) | 5/16 | /21 | /11 | 5/48 |
 
 ## 6. Plotting the charts for the report and the video

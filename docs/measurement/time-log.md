@@ -51,13 +51,13 @@ guess, and a guess makes CPI and SPI meaningless.
 | US10 ✅ | Kasam | `decision_points` | 5 | 10 | **6.0** | branch initially cut from the US01 branch rather than main; resolved by merging US01 first |
 | US12 | Kasam | `max_nesting_depth` | 5 | 10 |  |  |
 | US20 | Kasam | `rule_nesting` | 3 | 6 |  |  |
-| US11 | Saaket | `cyclomatic_complexity` | 8 | 16 |  |  |
+| US11 ✅ | Saaket | `cyclomatic_complexity` | 8 | 16 | **7.0** | tests written 12 Nov, finished in an unplanned Sunday session on 15 Nov to recover the lost Friday |
 | US19 | Saaket | `rule_complexity` | 5 | 10 |  |  |
 | US26 ✅ | Saaket | `classify_severity` | 5 | 10 | **6.0** | dependency root - every rule story calls it, so taken first |
 | US28 ✅ | Harshita | `weighted_penalty` | 5 | 10 | **6.0** | implementation waited on US26 merging for the severity constants |
 | US29 | Harshita | `score_from_issues` | 8 | 16 |  |  |
 | US30 | Harshita | `grade_band` | 3 | 6 |  |  |
-| | | **Closed so far** | **18** | **36** | **23.0** | 4 of 12 stories. CPI 36 / 23.0 = **1.57** |
+| | | **Closed so far** | **26** | **52** | **30.0** | 5 of 12 stories. CPI 52 / 30.0 = **1.73** |
 | | | **Sprint committed** | **56** | **112** | | |
 
 ### Sprint 2 — 63 points, 126 hours budgeted
@@ -100,8 +100,8 @@ guess, and a guess makes CPI and SPI meaningless.
 
 | | Points | Budget (h) | Actual (h) | CPI |
 |---|---|---|---|---|
-| Closed | 18 | 36 | 23.0 | **1.57** |
-| Remaining | 178 | 356 | — | — |
+| Closed | 26 | 52 | 30.0 | **1.73** |
+| Remaining | 170 | 340 | — | — |
 | **Budget at Completion** | **196** | **392** | | |
 
 ## Rolling up to EVM
@@ -162,18 +162,35 @@ So record what really happened. The analysis is where the marks are.
 
 ## Outstanding
 
-The four stories closed on 11 November are recorded above: **23.0 hours against a 36 hour
-budget**, giving a Sprint-1-to-date CPI of **1.57**.
+**Five stories closed: 30.0 hours against a 52 hour budget, a CPI of 1.73.**
 
-That is the first real signal the measurement has produced, and it says the **2 h/point
-rate set at planning is too generous** — by roughly 60%. Three of the four came in at 6
-hours whether they were worth 3 points or 5, which suggests the fixed overhead per story
-— branch, tests, symbolic write-up, pull request, review — matters more at this size than
-the story's own complexity does.
+The signal from 11 November has not just held, it has strengthened. The 2 h/point
+rate set at planning is too generous by roughly 70%. US11 is the sharpest
+example: 8 points, 16 hours budgeted, 7 hours spent — and it is the largest
+story closed so far, so the gap is not an artefact of small stories.
 
-Decide at the Sprint 1 review whether to recalibrate. Lowering the rate to 1.25 h/point
-would take BAC from 392 to 245 hours and bring CPI close to 1.0. Record the decision
-either way in `sprint-1-retrospective.md`: a rate left wrong once it is known to be wrong
-is worse than one that was never checked.
+The pattern across all five is that **the fixed overhead per story dominates its
+estimated size**. Branch, two black-box packages, implementation, three
+white-box packages, symbolic write-up, pull request, review: that is five to
+seven hours whether the story is worth 3 points or 8. Points are measuring
+perceived difficulty; hours are measuring process overhead, and the two are
+barely correlated at this granularity.
 
-Every remaining story is logged at the point of work, not reconstructed afterwards.
+| Story | Points | Budget (h) | Actual (h) | h/point |
+|---|---|---|---|---|
+| US01 | 3 | 6 | 5.0 | 1.67 |
+| US10 | 5 | 10 | 6.0 | 1.20 |
+| US26 | 5 | 10 | 6.0 | 1.20 |
+| US28 | 5 | 10 | 6.0 | 1.20 |
+| US11 | 8 | 16 | 7.0 | 0.88 |
+
+The h/point figure *falls* as stories get bigger, which is the signature of a
+fixed cost being divided by a growing denominator.
+
+**Decision for the Sprint 1 review.** Recalibrate from 2.0 to **1.25 h/point**,
+which takes BAC from 392 to 245 hours and brings CPI to 52 / 30.0 ÷ 1.6 ≈ 1.08.
+Record the decision and its reasoning in `sprint-1-retrospective.md`. A rate left
+wrong once it is known to be wrong is worse than one that was never checked.
+
+Every remaining story is logged at the point of work, not reconstructed
+afterwards.

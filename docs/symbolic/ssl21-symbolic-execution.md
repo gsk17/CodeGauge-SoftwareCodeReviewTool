@@ -126,6 +126,89 @@ contains no loops.
 
 ---
 
+## US11 — `core.complexity.cyclomatic_complexity(decision_point_count, bool_operators)`
+
+### 1. The function, with branches labelled
+
+```python
+def cyclomatic_complexity(decision_point_count, bool_operators):
+    if decision_point_count < 0:          # b1
+        raise ValueError(...)
+    if bool_operators < 0:                # b2
+        raise ValueError(...)
+    return decision_point_count + bool_operators + 1
+```
+
+### 2. Symbolic inputs
+
+`D` and `B`, symbolic integers. The function has no loops and no nested
+conditionals, so the tree is a chain of depth two with three leaves.
+
+### 3. Symbolic execution tree
+
+```
+                PC: true
+                [b1] D < 0 ?
+               /                     true /              \ false
+             /                    P1: ValueError        PC: D >= 0
+    PC: D < 0             [b2] B < 0 ?
+                         /                               true /              \ false
+                       /                              P2: ValueError      P3: return D + B + 1
+              PC: D>=0 and B<0    PC: D >= 0 and B >= 0
+```
+
+### 4. Path conditions and solved witnesses
+
+| Path | Path condition | Witness | Result |
+|---|---|---|---|
+| P1 | `D < 0` | `(-1, 0)` | `ValueError` |
+| P2 | `D >= 0 and B < 0` | `(5, -1)` | `ValueError` |
+| P3 | `D >= 0 and B >= 0` | `(7, 3)` | `11` |
+| P3' | same, both at the boundary | `(0, 0)` | `1` |
+
+**Working for P2.** The conjunction is `D >= 0`, `B < 0`. The two constraints
+are independent, so any non-negative `D` with any negative `B` satisfies it.
+`D = 5` is chosen rather than `0` so that the witness also demonstrates the
+first guard was evaluated and passed, rather than skipped.
+
+**Working for P3'.** Both constraints are satisfied at their boundary, so the
+returned symbolic expression `D + B + 1` evaluates to `0 + 0 + 1 = 1`. The
+constant term is the whole point of the measure: a function with no decisions
+still has exactly one path through it, so its complexity is 1 and never 0.
+Symbolic execution makes that visible as an arithmetic fact about the returned
+expression rather than as a remembered special case.
+
+**No infeasible paths.** Each guard constrains a different symbol, so no
+conjunction contradicts itself.
+
+### 5. Concolic execution
+
+Seeded with `(4, 2)`:
+
+| It. | Input | Path | Collected PC | Branch negated | Next input |
+|---|---|---|---|---|---|
+| 1 | `(4, 2)` | P3 → 7 | `D >= 0 and B >= 0` | `B >= 0` → `B < 0` | `(4, -1)` |
+| 2 | `(4, -1)` | P2 | `D >= 0 and B < 0` | backtrack to b1: `D >= 0` → `D < 0` | `(-1, 0)` |
+| 3 | `(-1, 0)` | P1 | `D < 0` | none left | — |
+
+Three iterations, three paths, **100% path coverage**.
+
+### 6. Resulting test cases
+
+`ssl21/test/whitebox/symbolic_execution/test_cyclomatic_complexity.py` and
+`.../concolic_testing/test_cyclomatic_complexity.py`.
+
+### 7. Coverage
+
+| Measure | Value |
+|---|---|
+| Paths in the tree | 3 |
+| Paths tested | 3 |
+| Infeasible paths | 0 |
+| Statement coverage of `cyclomatic_complexity` | 100% |
+
+---
+
 ## US19 — `rule_complexity(cc, limit, line)`
 
 *To be completed when the story is implemented.*

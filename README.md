@@ -18,15 +18,18 @@ project **#17, Software Code Review Tool**.
 | Phase | Dates | State |
 |---|---|---|
 | Sprint 0 — design and planning | 4–7 Nov 2026 | **complete** |
-   Sprint 1 | 9–22 Nov 2026 | **in progress** |
+| Sprint 1 | 9–22 Nov 2026 | **in progress** |
 | Sprint 2 | 23 Nov–6 Dec 2026 | not started |
 | Sprint 3 | 7–20 Dec 2026 | not started |
 | Hardening | 21–27 Dec 2026 | not started |
 | Report, video, packaging | 28 Dec–3 Jan 2027 | not started |
 | Submitted | 4 Jan 2027 | not started |
 
-**User stories:** 0 of 36 done · 0 of 196 story points · Sprint 1 backlog: 12 stories, 56 points
-**Tests:** 6 passing · **Coverage:** data model only
+**User stories:** 5 of 36 done · 26 of 196 story points · Sprint 1 backlog: 12 stories, 56 points
+**Tests:** 119 passing · **Coverage:** 100% of `core/`, 99% overall
+
+*As of 16 November 2026. Four more stories — US02, US12, US19, US30 — are implemented and
+merge on 17 November, taking Sprint 1 to 9 of 12 stories and 42 of 56 points.*
 
 <!-- PHASE: update this table and these two lines at every sprint review. -->
 
@@ -123,6 +126,40 @@ and why.
 
 One branch per user story, `feature/<username>-us<NN>-<slug>`, merged by reviewed pull
 request and **never deleted** — the brief requires branches as development evidence.
+
+## Progress
+
+### Sprint 1 burndown
+
+![Sprint 1 burndown chart](docs/measurement/burndown-sprint1.png)
+
+Ideal against actual, 56 points over 10 working days. The chart is generated from
+[burndown-data.csv](docs/measurement/burndown-data.csv), which is appended at each daily
+stand-up rather than filled in at the end of the sprint:
+
+```bash
+python docs/measurement/scripts/burndown.py 1
+```
+
+The actual line is a staircase rather than a slope, and deliberately so. Stories are worth
+3, 5 or 8 points and the 0/100 rule pays nothing until a story merges, so the line cannot
+track a 5.6-points-per-day ideal — it holds flat for days and then drops when a batch of
+pull requests lands. Day 2 fell 18 points in one afternoon when four members merged
+together.
+
+Two gaps in the line are worth reading rather than smoothing over:
+
+- **Day 4, Friday 13 November** — no work on any branch. The day was recovered by an
+  unplanned Sunday session on the 15th rather than by pushing a story into Sprint 2; the
+  reasoning is in the [daily scrum log](docs/scrum/daily-scrum-log.md).
+- **Day 3, Thursday 12 November** — a full day of work that earned zero points, spent
+  adding the random-based black-box tests the first four stories had shipped without. The
+  Definition of Done named only "black-box test cases" without requiring both strategies,
+  and that omission cost a day. It now names both.
+
+The day-5 figure includes US11, which merged during the Sunday session. The chart plots
+working days only, so that weekend appears in Monday's column; it has its own annotated row
+in [burndown-and-velocity.md](docs/measurement/burndown-and-velocity.md).
 
 ---
 

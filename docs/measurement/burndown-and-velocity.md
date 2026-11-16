@@ -40,7 +40,7 @@ burn is 5.6 points per day.
 | 3 | Thu 12 Nov | 39.2 | 38 | — | US11 started; random-based black-box tests added to the four closed stories |
 | 4 | Fri 13 Nov | 33.6 | 38 | — | no work on any story; US11's implementation and the planned starts for US02, US12 and US30 all slipped |
 | — | Sun 15 Nov | — | 30 | US11 | unplanned weekend session to recover Friday; US11 merged, and US02, US12, US19 and US30 all started. Not a planned working day, so no ideal figure |
-| 5 | Mon 16 Nov | 28.0 | _ | _ | |
+| 5 | Mon 16 Nov | 28.0 | 30 | — | US02, US12, US19 and US30 all implemented; none merged yet, so the 0/100 rule earns them nothing |
 | 6 | Tue 17 Nov | 22.4 | _ | _ | |
 | 7 | Wed 18 Nov | 16.8 | _ | _ | |
 | 8 | Thu 19 Nov | 11.2 | _ | _ | |

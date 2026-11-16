@@ -183,3 +183,58 @@ tests committed, worth a further 16 points; under the 0/100 rule they earn
 nothing until they merge, so the burndown still reads 30.
 
 Friday's 4.4-point deficit is cleared and the sprint is ahead of the line again.
+
+---
+
+## 2026-11-16 (Sprint 1, day 5)
+
+**Gunjan**
+- Yesterday: recorded the 13 November gap; US02 failing tests committed and
+  observed failing
+- Today: US02 `count_leading_spaces` implemented, `86e9034`. Tests went from
+  `ImportError` to green
+- Impediments: none
+
+**Kasam**
+- Yesterday: US12 failing tests committed and observed failing
+- Today: US12 `max_nesting_depth` implemented, `582b03b`
+- Impediments: none
+
+**Saaket**
+- Yesterday: US11 merged by pull request #41; US19 failing tests committed and
+  observed failing on `ModuleNotFoundError`
+- Today: US19 `rule_complexity` implemented, `33ebcc0`, which **creates
+  `core/rules.py`** — the module Kasam needs on Wednesday for US20
+- Impediments: none
+
+**Harshita**
+- Yesterday: reviewed and merged US11; US30 failing tests committed and observed
+  failing
+- Today: US30 `grade_band` implemented, `a95d826`
+- Impediments: none
+
+**Notes from today.**
+
+`core/rules.py` now exists with `rule_complexity` and the `CODE_COMPLEXITY`
+constant. Kasam adds `rule_nesting` and a `CODE_NESTING` constant to the same
+module on Wednesday, once US19 has merged — the sequencing agreed yesterday, and
+the same pattern as US28 waiting on US26 last Wednesday.
+
+`rule_complexity` delegates its severity to `classify_severity` rather than
+banding the value itself. That is why 11 against a limit of 10 reports MINOR
+while 20 against the same limit reports CRITICAL, without the rule knowing
+anything about the bands. It is the clearest dependency between two members'
+modules in the project so far, and both the US19 symbolic write-up and the
+sprint review should say so.
+
+Four implementations landed on four different files, so the four branches did
+not collide. That was deliberate when the sprint was planned, and it is the
+reason four people could work the same day without blocking each other.
+
+**Verification run on all four branches together:** 206 tests pass, and
+statement coverage of `core/` is 100% across all five modules.
+
+**Sprint status at end of day 5:** 5 of 12 stories done, 26 of 56 points, 30
+remaining against an ideal of 28.0 — 2 points behind, and all four stories in
+progress merge tomorrow. Under the 0/100 rule none of their 16 points count
+until then.

@@ -209,6 +209,186 @@ Three iterations, three paths, **100% path coverage**.
 
 ---
 
-## US19 — `rule_complexity(cc, limit, line)`
+## US19 — `core.rules.rule_complexity(cc, limit, line)`
 
-*To be completed when the story is implemented.*
+This is the first analysis in the project whose tree **crosses a call
+boundary**, and the two findings below are only visible because of it. Neither
+`rule_complexity` nor `classify_severity` shows them alone.
+
+### 1. The function, with branches labelled
+
+```python
+def rule_complexity(cc, limit, line):
+    if cc < 0:                           # b1
+        raise ValueError(...)
+    if limit < 1:                        # b2
+        raise ValueError(...)
+    if cc <= limit:                      # b3
+        return None
+    severity = classify_severity(cc, limit)   # inlined below
+    return Issue(CODE_COMPLEXITY, severity, line, message)
+```
+
+With `classify_severity` (US26) inlined, the decisions reachable from here are:
+
+```python
+    if cc <= limit + limit // 2:         # b4  -> MINOR
+    if cc < 2 * limit:                   # b5  -> MAJOR
+    (implicit else)                      # b6  -> CRITICAL
+```
+
+The INFO branch of the callee, guarded by `actual <= limit`, is **not** listed
+— see Finding 1.
+
+### 2. Symbolic inputs
+
+`C` (complexity), `L` (limit) and `N` (line), symbolic integers. `N` is carried
+into the `Issue` untouched and appears in **no path condition**, so the tree
+branches on `C` and `L` alone. That is itself worth recording: the line number
+is data, not control, and no choice of `N` can change which path executes.
+
+### 3. Symbolic execution tree
+
+```
+                PC: true
+                [b1] C < 0 ?
+               /            \
+         true /              \ false
+             /                \
+    P1: ValueError        PC: C >= 0
+                          [b2] L < 1 ?
+                         /            \
+                   true /              \ false
+                       /                \
+              P2: ValueError      PC: C>=0 and L>=1
+                                  [b3] C <= L ?
+                                 /            \
+                           true /              \ false
+                               /                \
+                        P3: None          PC: ... and C > L
+                        (no finding)      [b4] C <= L + L//2 ?
+                                         /                  \
+                                   true /                    \ false
+                                       /                      \
+                            P4: Issue MINOR          [b5] C < 2L ?
+                                                     /            \
+                                               true /              \ false
+                                                   /                \
+                                      P5: Issue MAJOR      P6: Issue CRITICAL
+```
+
+Six leaves, six paths.
+
+### 4. Path conditions and solved witnesses
+
+| Path | Path condition | Witness | Returns |
+|---|---|---|---|
+| P1 | `C < 0` | `(-1, 10)` | `ValueError` |
+| P2 | `C >= 0 and L < 1` | `(5, 0)` | `ValueError` |
+| P3 | `C >= 0 and L >= 1 and C <= L` | `(10, 10)` | `None` |
+| P4 | `… and C > L and C <= L + floor(L/2)` | `(11, 10)` | `Issue`, MINOR |
+| P5 | `… and C > L + floor(L/2) and C < 2L` | `(16, 10)` | `Issue`, MAJOR |
+| P6 | `… and C > L + floor(L/2) and C >= 2L` | `(20, 10)` | `Issue`, CRITICAL |
+
+**Working for P5.** The conjunction is `C >= 0`, `L >= 1`, `C > L`,
+`C > L + floor(L/2)`, `C < 2L`. Fixing `L = 10` gives `floor(L/2) = 5`, so the
+constraints on `C` collapse to `C > 15` and `C < 20`, and `C > L = 10` is then
+implied. The feasible set is `C in {16, 17, 18, 19}`; `C = 16` is taken as the
+boundary-adjacent witness.
+
+**Working for P2.** `C = 5` is chosen rather than `0` so that the witness also
+demonstrates b1 was evaluated and passed rather than skipped.
+
+**On `floor(L/2)`.** Integer division makes b4 and b5 piecewise rather than
+strictly linear: `floor(L/2) = k` means `L = 2k` or `L = 2k+1`. Each witness is
+therefore solved by first fixing the parity of `L`; with `L` fixed to a
+concrete even value, every remaining constraint is linear in `C`.
+
+### 4a. Finding 1 — INFO is unreachable through this rule
+
+`classify_severity` has four outcomes, but its INFO branch is guarded by
+`C <= L`. Path P3 has already returned `None` under **exactly** that condition.
+Reaching the callee at all requires `C > L`, so the conjunction needed for INFO
+is:
+
+```
+C > L   and   C <= L          unsatisfiable
+```
+
+**`rule_complexity` can therefore never produce an INFO issue.** One quarter of
+the severity scale is dead code as reached from this rule.
+
+This is not a defect. It is the correct consequence of a rule that only speaks
+when a limit is exceeded: "within the limit" is represented by returning `None`,
+not by an issue of the lowest severity. But it is worth knowing for two
+reasons. A report consumer that switches on all four bands has an arm this rule
+can never trigger; and anyone extending the rule set should expect the same to
+hold for every `rule_*` function built on the same shape, because the shape is
+what causes it.
+
+### 4b. Finding 2 — at a limit of 1, only CRITICAL survives
+
+The US26 analysis above already showed that `L = 1` collapses two bands:
+`C <= 1 + floor(1/2) = 1` is consumed by the INFO branch, and `C > 1 and C < 2`
+has no integer solution, so MINOR and MAJOR are both unreachable. Compose that
+with Finding 1 and **every issue this rule raises at a limit of 1 is
+CRITICAL**, for every complexity above 1. Three of the four bands are gone.
+
+Taken together, the number of severities this rule can emit **depends on the
+configured limit**: three for `L >= 2`, one for `L = 1`. A user who sets a
+complexity limit of 1 gets a tool that reports everything as critical and
+nothing as minor — a configuration hazard rather than a bug, derived rather
+than observed, and recorded in the README's known limitations.
+
+This is the clearest demonstration in the project of symbolic execution finding
+something testing by example would not. No amount of sampling at `L = 10` shows
+it, and the two facts that combine to produce it live in different modules
+owned by different members.
+
+### 5. Concolic execution
+
+Seeded with `(C, L) = (5, 10)` — a complexity comfortably inside the limit, so
+the walk starts on the no-finding path and has to work outwards:
+
+| It. | Input | Path | Collected PC | Branch negated | Next input |
+|---|---|---|---|---|---|
+| 1 | `(5, 10)` | P3 → `None` | `C>=0, L>=1, C<=L` | `C <= L` → `C > L` | `(11, 10)` |
+| 2 | `(11, 10)` | P4 → MINOR | `… C <= L+L//2` | → `C > L+L//2` | `(16, 10)` |
+| 3 | `(16, 10)` | P5 → MAJOR | `… C < 2L` | → `C >= 2L` | `(20, 10)` |
+| 4 | `(20, 10)` | P6 → CRITICAL | `… C >= 2L` | backtrack b2: `L >= 1` → `L < 1` | `(20, 0)` |
+| 5 | `(20, 0)` | P2 | `C>=0, L<1` | backtrack b1: `C >= 0` → `C < 0` | `(-1, 10)` |
+| 6 | `(-1, 10)` | P1 | `C < 0` | none left | — |
+
+Six iterations, six paths, **100% path coverage**. The tree is finite because
+neither function contains a loop.
+
+**Why the walk never produces an INFO issue.** Iteration 1 collects `C <= L`
+and the solver negates it, so every subsequent input satisfies `C > L`. The
+INFO branch requires `C <= L`, so the solver can never be *asked* for an input
+reaching it — the constraint was negated away at the first step and nothing in
+the walk restores it. Concolic execution therefore **demonstrates** the
+unreachability that section 4a **proves**: the walk simply never goes there,
+and the reason is visible in the collected condition rather than argued
+separately.
+
+### 6. Resulting test cases
+
+| File | Contents |
+|---|---|
+| `ssl21/test/whitebox/branch_coverage/test_rule_complexity.py` | six branch outcomes, including the three in the inlined callee |
+| `ssl21/test/whitebox/symbolic_execution/test_rule_complexity.py` | one test per path, plus both findings as domain sweeps |
+| `ssl21/test/whitebox/concolic_testing/test_rule_complexity.py` | the six iterations in generated order |
+
+Both findings are asserted over a wide domain rather than at a single example,
+because both are universal claims: Finding 1 sweeps `L` in 1..39 against `C` in
+0..119, and Finding 2 sweeps `C` in 2..59 at `L = 1`.
+
+### 7. Coverage
+
+| Measure | Value |
+|---|---|
+| Paths in the tree (inter-procedural) | 6 |
+| Paths tested | 6 |
+| Infeasible path combinations found | **2** — INFO unreachable; MINOR and MAJOR unreachable at `L = 1` |
+| Branch outcomes | 6 reachable of 7 total; the 7th is proved unreachable |
+| Statement coverage of `rule_complexity` | 100% |

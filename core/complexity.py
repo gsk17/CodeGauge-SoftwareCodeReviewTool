@@ -47,3 +47,26 @@ def cyclomatic_complexity(decision_point_count, bool_operators):
         raise ValueError("bool_operators must not be negative, got %r"
                          % (bool_operators,))
     return decision_point_count + bool_operators + 1
+
+
+def max_nesting_depth(depths):
+    """Deepest nesting reached anywhere in a function - US12.
+
+    Takes the per-line nesting depths produced by the scanner and returns the
+    largest. An empty list is 0 rather than an error: a function with no lines
+    is not nested, and the caller should not have to special-case it.
+
+    Every element is validated before the scan begins, so a negative depth is
+    rejected even when it is not the largest value in the list. Validating
+    inside the scan would let a negative value pass unnoticed whenever a
+    larger valid value had already been seen.
+    """
+    for depth in depths:
+        if depth < 0:                      # a nesting depth is never negative
+            raise ValueError("nesting depth must not be negative, got %r"
+                             % (depth,))
+    deepest = 0                            # the answer for an empty list
+    for depth in depths:
+        if depth > deepest:                # a new maximum
+            deepest = depth
+    return deepest

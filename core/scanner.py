@@ -19,3 +19,27 @@ def classify_line(line):
     if stripped.startswith("#"):
         return "comment"
     return "code"
+
+
+def count_leading_spaces(line, tab_width):
+    """Width of a line's indentation, in columns - US02.
+
+    Walks the line from the left and stops at the first character that is
+    neither a space nor a tab. A space is one column; a tab is tab_width
+    columns, because indentation is measured in the columns a reader sees
+    rather than in characters.
+
+    Only leading whitespace counts. Trailing whitespace is not indentation,
+    and whitespace after the first real character is not either.
+    """
+    if tab_width < 1:                      # a tab cannot be narrower than one column
+        raise ValueError("tab_width must be at least 1, got %r" % (tab_width,))
+    width = 0
+    for character in line:
+        if character == " ":               # one column
+            width = width + 1
+        elif character == "	":            # as many columns as the tab stop
+            width = width + tab_width
+        else:                              # first non-whitespace: indentation ends
+            break
+    return width

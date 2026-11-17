@@ -25,11 +25,11 @@ project **#17, Software Code Review Tool**.
 | Report, video, packaging | 28 Dec–3 Jan 2027 | not started |
 | Submitted | 4 Jan 2027 | not started |
 
-**User stories:** 5 of 36 done · 26 of 196 story points · Sprint 1 backlog: 12 stories, 56 points
-**Tests:** 119 passing · **Coverage:** 100% of `core/`, 99% overall
+**User stories:** 9 of 36 done · 42 of 196 story points · Sprint 1 backlog: 12 stories, 56 points
+**Tests:** 319 passing · **Coverage:** 100% of `core/`
 
-*As of 16 November 2026. Four more stories — US02, US12, US19, US30 — are implemented and
-merge on 17 November, taking Sprint 1 to 9 of 12 stories and 42 of 56 points.*
+*As of 17 November 2026. Sprint 1 has US07, US20 and US29 left — 14 points across the three
+days to Friday 20 November.*
 
 <!-- PHASE: update this table and these two lines at every sprint review. -->
 
@@ -141,6 +141,11 @@ stand-up rather than filled in at the end of the sprint:
 python docs/measurement/scripts/burndown.py 1
 ```
 
+The image above is always the latest run. A dated copy is kept after each stand-up in
+[docs/measurement/charts/](docs/measurement/charts/) — a single final chart cannot show
+whether the line was recorded daily or drawn at the end of the sprint, and the snapshots
+are what settle that.
+
 The actual line is a staircase rather than a slope, and deliberately so. Stories are worth
 3, 5 or 8 points and the 0/100 rule pays nothing until a story merges, so the line cannot
 track a 5.6-points-per-day ideal — it holds flat for days and then drops when a batch of
@@ -160,6 +165,10 @@ Two gaps in the line are worth reading rather than smoothing over:
 The day-5 figure includes US11, which merged during the Sunday session. The chart plots
 working days only, so that weekend appears in Monday's column; it has its own annotated row
 in [burndown-and-velocity.md](docs/measurement/burndown-and-velocity.md).
+
+Day 6 is the sharpest drop of the sprint — four stories merged the same afternoon, one per
+member, taking 30 points to 14 against an ideal of 22.4. That is **8.4 points ahead of the
+line**, and it clears the deficit the lost Friday created.
 
 ---
 

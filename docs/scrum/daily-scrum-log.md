@@ -238,3 +238,99 @@ statement coverage of `core/` is 100% across all five modules.
 remaining against an ideal of 28.0 — 2 points behind, and all four stories in
 progress merge tomorrow. Under the 0/100 rule none of their 16 points count
 until then.
+
+---
+
+## 2026-11-17 (Sprint 1, day 6)
+
+**Gunjan**
+- Yesterday: US02 `count_leading_spaces` implemented
+- Today: US02 white-box, symbolic and concolic cases; pull request #42 reviewed
+  by Kasam and merged. Reviewed and merged Harshita's US30 (#45)
+- Hours on US02: 5.0 against a 6 hour budget
+- Impediments: none
+
+**Kasam**
+- Yesterday: US12 `max_nesting_depth` implemented
+- Today: US12 white-box, symbolic and concolic cases; pull request #43 reviewed
+  by Saaket and merged. Reviewed and merged Gunjan's US02 (#42)
+- Hours on US12: 6.0 against a 10 hour budget
+- Impediments: none. US20 `rule_nesting` starts tomorrow and needs
+  `core/rules.py`, which reached `main` with US19 this afternoon
+
+**Saaket**
+- Yesterday: US19 `rule_complexity` implemented, creating `core/rules.py`
+- Today: US19 white-box, symbolic and concolic cases; pull request #44 reviewed
+  by Harshita and merged. Reviewed and merged Kasam's US12 (#43).
+  **All three Sprint 1 stories complete**
+- Hours on US19: 4.5 against a 10 hour budget
+- Impediments: none
+
+**Harshita**
+- Yesterday: US30 `grade_band` implemented
+- Today: US30 white-box, symbolic and concolic cases; pull request #45 reviewed
+  by Gunjan and merged. Reviewed and merged Saaket's US19 (#44)
+- Hours on US30: 3.5 against a 6 hour budget
+- Impediments: none
+
+**Four stories merged, one per member, 16 points in a day.** Each member both
+gave and received exactly one review, following the rotation in
+`story-workflow.md`, so the peer-review evidence for the day is complete.
+
+**Notes from today.**
+
+`core/rules.py` is now on `main` with `rule_complexity` and the
+`CODE_COMPLEXITY` constant. **Kasam is unblocked for US20**, which adds
+`rule_nesting` and a `CODE_NESTING` constant to the same module tomorrow. This
+is the second time a story has been sequenced behind another member's merge
+rather than blocked by it - US28 waited on US26 the same way last Wednesday -
+and in both cases the dependency was identified at planning and ordered around,
+not discovered during the work.
+
+**Two symbolic analyses found something the black-box tests could not.**
+
+US19 is the first analysis in the project whose tree crosses a call boundary.
+Inlining `classify_severity` showed that its INFO branch is guarded by
+`cc <= limit`, which `rule_complexity` has already consumed by returning None -
+so the conjunction is unsatisfiable and **this rule can never emit an INFO
+issue**. Composed with the US26 finding that a limit of 1 collapses MINOR and
+MAJOR, it follows that **at a limit of 1 the rule emits only CRITICAL**. The
+number of severities the tool can report therefore depends on how it is
+configured. Neither function shows this alone; it took the composed tree.
+
+US12 is the first looping function analysed, so the tree is infinite and the
+unrolling had to be bounded at k = 2. The analysis found that three path
+conditions have a *unique* solution rather than an interval: `deepest` starts at
+0 and validation forces depths non-negative, so the false branch of the scan
+comparison on the first iteration requires exactly 0. The random-based test
+samples depths in 0..20 and would reach that branch roughly once in twenty-one
+lists, by chance.
+
+Both findings go in the sprint review. They are the clearest evidence so far
+that the white-box work is doing something the black-box work does not.
+
+**Two honest limitations recorded rather than smoothed over.** The concolic walk
+for US12 reaches 9 of its 10 bounded paths and the walk for US02 reaches 6 of
+11, because loop length is not a branch condition and the solver cannot change
+it. Both write-ups say so and point at the symbolic analysis that covers the
+rest. A coverage table claiming 100% in both cases would have been easy to write
+and worth less.
+
+**Measurement.** Nine stories closed, 49.0 hours against an 84 hour budget, CPI
+**1.71**. With nine data points the pattern is no longer ambiguous: fitting the
+group means gives `hours = 3.0 + 0.5 x points`, so roughly **three hours of
+every story is fixed process cost** - branch, five test packages, write-up, pull
+request, review - and only about half an hour per point is the function itself.
+That is why four of the five 5-point stories cost exactly 6.0 hours despite
+being different functions in different modules written by three different
+people. Recorded in `time-log.md` for the Sprint 1 review, where the rate
+decision is due.
+
+**Sprint status at end of day 6:** **9 of 12 stories done, 42 of 56 points.**
+14 remaining against an ideal of 22.4 - **8.4 points ahead of the line**, the
+largest lead of the sprint and a full recovery from the 13 November gap.
+
+Remaining: US07 (Gunjan, 3), US20 (Kasam, 3), US29 (Harshita, 8). Saaket has
+finished Sprint 1 two days early and will review the other three rather than
+take new work, since pulling a Sprint 2 story forward would distort the velocity
+figure the next sprint is planned from.

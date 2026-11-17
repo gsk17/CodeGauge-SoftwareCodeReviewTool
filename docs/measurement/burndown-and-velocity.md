@@ -41,7 +41,7 @@ burn is 5.6 points per day.
 | 4 | Fri 13 Nov | 33.6 | 38 | — | no work on any story; US11's implementation and the planned starts for US02, US12 and US30 all slipped |
 | — | Sun 15 Nov | — | 30 | US11 | unplanned weekend session to recover Friday; US11 merged, and US02, US12, US19 and US30 all started. Not a planned working day, so no ideal figure |
 | 5 | Mon 16 Nov | 28.0 | 30 | — | US02, US12, US19 and US30 all implemented; none merged yet, so the 0/100 rule earns them nothing |
-| 6 | Tue 17 Nov | 22.4 | _ | _ | |
+| 6 | Tue 17 Nov | 22.4 | 14 | US02 US12 US19 US30 | four stories merged, one per member; 16 points in a day |
 | 7 | Wed 18 Nov | 16.8 | _ | _ | |
 | 8 | Thu 19 Nov | 11.2 | _ | _ | |
 | 9 | Fri 20 Nov | 5.6 | _ | _ | |
@@ -101,10 +101,10 @@ must finish all nine of their stories:
 
 | Member | Sprint 1 | Sprint 2 | Sprint 3 | Total (target 48) |
 |---|---|---|---|---|
-| Gunjan (M1, scanner) | 3/9 | /11 | /26 | 3/46 |
-| Kasam (M2, complexity) | 5/13 | /18 | /24 | 5/55 |
-| Saaket (M3, rules) | 13/18 | /13 | /16 | 13/47 |
-| Harshita (M4, scoring) | 5/16 | /21 | /11 | 5/48 |
+| Gunjan (M1, scanner) | 6/9 | /11 | /26 | 6/46 |
+| Kasam (M2, complexity) | 10/13 | /18 | /24 | 10/55 |
+| Saaket (M3, rules) | **18/18** | /13 | /16 | 18/47 |
+| Harshita (M4, scoring) | 8/16 | /21 | /11 | 8/48 |
 
 ## 6. Plotting the charts for the report and the video
 
@@ -117,6 +117,24 @@ produce it:
 - **Spreadsheet**: paste the Day / Ideal / Actual columns into Excel or Google Sheets and
   insert a line chart. Export as PNG into `docs/measurement/` and reference it from the
   report.
+
+### Where the charts live
+
+| Path | What it is |
+|---|---|
+| `burndown-sprint<N>.png` | **the current chart** - overwritten each time the script runs, and the one the README links to, so the README never needs editing |
+| `charts/burndown-sprint<N>-<YYYY-MM-DD>.png` | **dated snapshots**, one per stand-up |
+
+Keeping the dated copies matters for the same reason the daily commits do: a
+single chart file shows only the finished sprint, and a sprint that was recorded
+daily looks identical to one drawn at the end. The snapshots are the proof that
+the line was plotted as the sprint ran. Copy the current chart into `charts/`
+after each regeneration:
+
+```bash
+python docs/measurement/scripts/burndown.py 1
+cp docs/measurement/burndown-sprint1.png docs/measurement/charts/burndown-sprint1-$(date +%F).png
+```
 
 Plot the ideal line and the actual line on the same axes, with days on x and remaining
 points on y, and keep one chart per sprint as the rubric asks for "Burndown Chart for every

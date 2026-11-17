@@ -144,6 +144,222 @@ python -m coverage report -m
 
 ---
 
-## US02 — `count_leading_spaces(line, tab_width)`
+## US02 — `core.scanner.count_leading_spaces(line, tab_width)`
 
-*To be completed when the story is implemented.*
+This is the awkward analysis in the project, and the reason is worth stating
+before the tree: **this function's path conditions are not linear integer
+constraints.**
+
+Every other function analysed here takes integers and compares them with `<`,
+`<=` and `==`, so each path condition is a conjunction of linear inequalities
+that solves by inspection. This one branches on **character equality** —
+`c == " "`, `c == "\t"` — over a symbolic string of unknown length. The
+constraints are therefore over a *sequence* of symbolic characters, and the
+returned value is a symbolic *expression* in `W = tab_width` rather than a
+constant.
+
+That is not a flaw in the design; it is the boundary of it. `core/scanner.py` is
+the only module that reads text, and everything downstream consumes the integers
+it produces — which is precisely why the rest of this project's symbolic
+analyses are tractable by hand. **This module is where the text stops**, and the
+cost of that decision is visible here and nowhere else.
+
+### 1. The function, with branches labelled
+
+```python
+def count_leading_spaces(line, tab_width):
+    if tab_width < 1:              # b1
+        raise ValueError(...)
+    width = 0
+    for character in line:         # L   the character loop
+        if character == " ":       # b2
+            width = width + 1
+        elif character == "\t":    # b3
+            width = width + tab_width
+        else:                      # b4  (implicit else)
+            break
+    return width
+```
+
+b2, b3 and b4 are an if/elif/else, so the three arms are mutually exclusive and
+each iteration takes exactly one.
+
+### 2. Symbolic inputs
+
+`W` for `tab_width`, and `c0`, `c1`, `c2`, … for the characters of the line.
+
+Each `ci` ranges over **three equivalence classes**, because the code can only
+distinguish three: space, tab, and anything else. That reduction is what makes
+the analysis possible at all — the character domain is otherwise unbounded, but
+no path condition can refer to any property of a character beyond which of those
+three classes it falls into.
+
+### 2a. Bounded unrolling
+
+As with US12 the loop makes the tree infinite, so the unrolling is bounded at
+**k = 2** — lines of 0, 1 and 2 leading characters. k = 2 is sufficient because
+it exhibits every pairing of the three arms, and a third character adds no new
+decision.
+
+### 3. Symbolic execution tree, bounded at k = 2
+
+```
+                  PC: true
+                  [b1] W < 1 ?
+                 /            \
+           true /              \ false
+               /                \
+      P1: ValueError        PC: W >= 1
+      PC: W < 1             [L] any characters ?
+                           /                  \
+                 exhausted/                    \ taken
+                         /                      \
+                   P2: 0                   which arm for c0 ?
+                   (empty line)          /         |         \
+                                   b2 " "      b3 "\t"      b4 other
+                                       |           |            |
+                                 width = 1   width = W      P3: 0
+                                       |           |         (break)
+                              [L] more chars ?   [L] more chars ?
+                              /     |     \       /     |     \
+                        exhausted  " "  "\t"  exhausted " "  "\t"
+                        or other        |     or other       |
+                            |          |         |           |
+                      P4/P6: 1    P8: 2   P9: 1+W  P5/P7: W  P10: W+1
+                                                             P11: 2W
+```
+
+Eleven paths at k = 2.
+
+### 4. Path conditions and solved witnesses
+
+| Path | Path condition | Witness | Returns |
+|---|---|---|---|
+| P1 | `W < 1` | `("  x", 0)` | `ValueError` |
+| P2 | `W >= 1`, line empty | `("", 4)` | `0` |
+| P3 | `W >= 1`, `c0` = other | `("x", 4)` | `0` |
+| P4 | `W >= 1`, `c0 = " "`, line ends | `(" ", 4)` | `1` |
+| P5 | `W >= 1`, `c0 = "\t"`, line ends | `("\t", 4)` | `W` |
+| P6 | `W >= 1`, `c0 = " "`, `c1` = other | `(" x", 4)` | `1` |
+| P7 | `W >= 1`, `c0 = "\t"`, `c1` = other | `("\tx", 4)` | `W` |
+| P8 | `W >= 1`, `c0 = c1 = " "` | `("  ", 4)` | `2` |
+| P9 | `W >= 1`, `c0 = " "`, `c1 = "\t"` | `(" \t", 4)` | `1 + W` |
+| P10 | `W >= 1`, `c0 = "\t"`, `c1 = " "` | `("\t ", 4)` | `W + 1` |
+| P11 | `W >= 1`, `c0 = c1 = "\t"` | `("\t\t", 4)` | `2W` |
+
+**The general shape.** A prefix of *m* spaces and *n* tabs, terminated either by
+a non-whitespace character or by the end of the line, returns **m + nW**. The
+eleven bounded paths are the m + n ≤ 2 instances of that expression, and the
+inductive step is asserted in the test file for m, n up to 4.
+
+**Witnesses for P5, P9, P10 and P11 are asserted at two values of `W`.** Those
+paths return expressions containing `W`, so a single assertion at `W = 4` cannot
+distinguish `W` from the constant 4, nor `2W` from 8. The test file checks each
+at two tab widths for that reason.
+
+### 4a. Finding 1 — the two whitespace arms commute
+
+P9 and P10 are **different paths with different path conditions**, but both
+return `1 + W`. Accumulation is addition, which is commutative, so the *order*
+of spaces and tabs within the prefix cannot affect the result — only the counts
+can.
+
+That is a property of the returned symbolic expression, not something a set of
+examples could establish. It is also exactly what the random-based black-box
+test asserts by sampling (`test_adding_n_spaces_to_the_front_adds_exactly_n`
+and the mixed-prefix invariant): the two techniques reach the same conclusion
+from opposite directions, one by derivation and one by experiment.
+
+### 4b. Finding 2 — a code line always measures zero
+
+P3 is the **only** path reachable when `c0` is neither space nor tab, and it
+returns `0` before the accumulator is ever touched.
+
+So `count_leading_spaces` and `classify_line` (US01, same module) agree **by
+construction**: a line that `classify_line` reports as code starting in column
+one always measures 0 indentation. Two functions are consistent because of their
+path structure, not because anyone tested the combination — which is the kind of
+claim worth having before the two are composed in `scan_file` (US09, Sprint 3).
+
+### 4c. Finding 3 — the function is total in `tab_width` above 1
+
+**No path condition mentions an upper bound on `W`.** The guard at b1 is the
+only constraint on `W` in the entire tree, so there is no tab width, however
+large, that reaches a different path or a different arm. The function is total
+in its second argument for every `W >= 1`.
+
+This matters for the threshold-editing menu planned in Sprint 3: no validation
+beyond `W >= 1` is needed, and that is now a derived fact rather than an
+assumption.
+
+**No infeasible paths.** Every path condition above is satisfiable, and the
+witness column names an input for each.
+
+### 5. Concolic execution
+
+Concolic execution fits this function **better** than pure symbolic execution
+does, and for a specific reason: the concrete run fixes the characters, so each
+iteration branches on a known value and the solver only has to pick the *next*
+character rather than reason about a symbolic string. The awkward string
+constraints described above mostly disappear.
+
+Seeded with `("  \tx = 1", 4)` — two spaces, a tab, then code. A real line of
+indented Python, chosen over a minimal input so that the first run exercises all
+three arms:
+
+| It. | Input | Path | Collected PC | Branch negated | Next input |
+|---|---|---|---|---|---|
+| 1 | `("  \tx = 1", 4)` | → 6 | `W>=1, c0=" ", c1=" ", c2="\t", c3=other` | `c0 == " "` → tab arm | `("\t \tx", 4)` |
+| 2 | `("\t \tx", 4)` | → 9 | `W>=1, c0="\t", c1=" ", c2="\t", c3=other` | `c1 == " "` → else arm | `("\tx", 4)` |
+| 3 | `("\tx", 4)` | P7 → 4 | `W>=1, c0="\t", c1=other` | `c0 == "\t"` → else arm | `("x", 4)` |
+| 4 | `("x", 4)` | P3 → 0 | `W>=1, c0=other` | nothing left at this length; **shrink** | `("", 4)` |
+| 5 | `("", 4)` | P2 → 0 | `W >= 1` | `W >= 1` → `W < 1` | `("", 0)` |
+| 6 | `("", 0)` | P1 | `W < 1` | none left | — |
+
+Six iterations. Each negates the **earliest** branch that still has an
+unexplored arm, which is why the walk shortens the whitespace prefix as it goes
+rather than lengthening it.
+
+**A three-way branch needs two negations per position, not one.** `c == " "` and
+`c == "\t"` are separate decisions in an if/elif, so negating the space arm
+leaves *both* the tab arm and the else arm unexplored. Iterations 1 to 3 work
+through them in order for `c0`, which is why the walk visits the same character
+position three times before moving on. A two-valued branch would have needed one
+negation per position; this one needs two, and the iteration count reflects it.
+
+**Character equality is cheap to solve here.** Negating `c0 == " "` requires
+only "some character that is not a space", and the solver has a three-class
+alphabet to choose from. Each negation therefore has at most two candidate
+answers, and the walk is finite per position even though the character domain is
+not. That three-class reduction, introduced in section 2, is what makes the
+whole technique applicable to a string-handling function.
+
+**What the walk does not reach.** Paths P8 to P11 — every bounded path with
+*exactly two* leading whitespace characters — are reached only by the seed, which
+has three. The walk shortens the prefix monotonically and never extends it, so
+once it drops below that length it cannot generate a two-whitespace line. Those
+four paths are covered in `symbolic_execution/`, where the bound is chosen
+deliberately rather than arrived at by negation. Reported here rather than
+papered over, for the same reason as the missing P2 in the US12 walk: the walk's
+reach is a fact about the technique, and concealing it would make the coverage
+table a worse piece of evidence, not a better one.
+
+### 6. Resulting test cases
+
+| File | Contents |
+|---|---|
+| `gsk17/test/whitebox/branch_coverage/test_count_leading_spaces.py` | nine outcomes: the guard, both loop exits, all three arms, and the break stopping accumulation |
+| `gsk17/test/whitebox/symbolic_execution/test_count_leading_spaces.py` | one test per bounded path, all three findings, and the m + nW generalisation |
+| `gsk17/test/whitebox/concolic_testing/test_count_leading_spaces.py` | the six iterations, plus the single-character-change property of each negation |
+
+### 7. Coverage
+
+| Measure | Value |
+|---|---|
+| Unrolling bound | k = 2 |
+| Paths in the bounded tree | 11 |
+| Paths tested | 11 |
+| Paths reached by the concolic walk | 6 of 11; P8–P11 covered symbolically |
+| Infeasible paths | 0 |
+| Branch outcomes | 7 of 7 |
+| Statement coverage of `count_leading_spaces` | 100% |

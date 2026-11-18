@@ -188,7 +188,7 @@ one found by accident.
 | # | Limitation | Consequence |
 |---|---|---|
 | 1 | **A `def` inside a string literal is read as a function header.** The scanner does not track string state, so a line inside a triple-quoted block is indistinguishable from code. | A docstring containing an example function inflates the function count. The current behaviour is pinned by a test in `gsk17/test/blackbox/equivalence_partitioning/test_is_function_header.py` so that any future change to it is deliberate. |
-| 2 | **A tab counts as `tab_width` columns, configurable, defaulting to 4.** PEP 8 and the Python tokenizer treat a tab as advancing to the next multiple of 8. | Indentation depth is under-reported in tab-indented files unless `tab_width` is set to 8. The function is total in `tab_width` for every value ≥ 1 — [derived](docs/symbolic/gsk17-symbolic-execution.md), no upper bound exists — so setting 8 is always safe. |
+| 2 | **A tab counts as `tab_width` columns, and `tab_width` is **not** a configurable threshold.** It is a required parameter of `count_leading_spaces`, passed by whatever calls it; `Thresholds` does not carry it and there is no project-wide default. PEP 8 and the Python tokenizer treat a tab as advancing to the next multiple of 8. | Indentation depth is reported in whatever unit the caller chose, and a user cannot change it from the menu. The function is total in `tab_width` for every value ≥ 1 — [derived](docs/symbolic/gsk17-symbolic-execution.md), no upper bound exists — so any unit is safe, but **the tool does not currently guarantee a consistent one across calls**. Adding `tab_width` to `Thresholds` is a candidate for Sprint 3. |
 | 3 | **A trailing comment does not make a line a comment.** `x = 1  # note` is classified as code. | Comment-density figures measure whole-line comments only, and so under-report documentation in a file that favours trailing comments. This is the intended definition rather than a defect, but it is a definition a reader could reasonably expect to be the other one. |
 | 4 | **Decision points are counted from keyword occurrences, not from control flow.** A comprehension counts as one decision regardless of how many `for` and `if` clauses it contains. | Cyclomatic complexity is under-reported for comprehension-heavy code and over-reported where a keyword appears in a string. |
 
@@ -204,20 +204,57 @@ found by symbolic execution rather than by testing**.
 | 5 | **At a limit of 1 the MINOR and MAJOR bands are unreachable.** MINOR requires `actual <= 1 + floor(1/2) = 1`, which the INFO branch has already taken; MAJOR requires `actual > 1 and actual < 2`, which has no integer solution. | A user who configures any limit of 1 sees only INFO and CRITICAL. [Derivation](docs/symbolic/ssl21-symbolic-execution.md) — no amount of sampling at a limit of 10 would reveal it. |
 | 6 | **No rule can ever emit an INFO issue.** Every `rule_*` function returns `None` when the measurement is within its limit, which is exactly the condition under which `classify_severity` would return INFO. The conjunction `actual > limit and actual <= limit` is unsatisfiable. | A report consumer that switches on all four severities has an arm that cannot be reached. INFO is reachable only by calling `classify_severity` directly. [Derivation](docs/symbolic/ssl21-symbolic-execution.md). |
 | 7 | **Combining 5 and 6: at a limit of 1, every issue a rule raises is CRITICAL.** Three of the four bands are gone — INFO by the rule shape, MINOR and MAJOR by the integer collapse. | **The number of severities the tool can report depends on how it is configured**, which is the most consequential limitation in this list. Recommended minimum for any configurable limit: **2**. |
+| 8 | **`Thresholds.validate` permits a limit of 1, which is the configuration limitations 5 to 7 describe.** The validator rejects 0 and below, on the reasoning that a threshold of zero would make every rule fire on every function. It does not reject 1. | A user can set, from the menu, precisely the value at which three of the four severity bands become unreachable, and nothing warns them. **This is an open defect, not a documented design decision** — see the note below. |
 
 ### Scoring
 
 | # | Limitation | Consequence |
 |---|---|---|
-| 8 | **The quality score is floored at 0 and capped at 40 when three or more critical issues are present.** Two files that are both very bad score identically once the floor is reached. | The score distinguishes "bad" from "worse" only above 0. The issue list, not the score, is what to read for a failing file. |
-| 9 | **The weights are fixed project constants** — 15 / 8 / 3 / 1 per issue. | A file's score is comparable with another file's only under the same weights. Scores recorded in the history file before a weight change are not comparable with ones after it, and nothing detects that. |
+| 9 | **The quality score is floored at 0 and capped at 40 when three or more critical issues are present.** Two files that are both very bad score identically once the floor is reached. | The score distinguishes "bad" from "worse" only above 0. The issue list, not the score, is what to read for a failing file. |
+| 10 | **The weights are fixed project constants** — 15 / 8 / 3 / 1 per issue. | A file's score is comparable with another file's only under the same weights. Scores recorded in the history file before a weight change are not comparable with ones after it, and nothing detects that. |
 
 ### Analysis scope
 
 | # | Limitation | Consequence |
 |---|---|---|
-| 10 | **Python only, and syntactically valid Python at that.** There is no parse step, so a file with a syntax error is scanned rather than rejected. | Measurements from a broken file are meaningless but are reported without warning. |
-| 11 | **No cross-file analysis.** Each file is reviewed independently. | Duplication is detected within a file, not between files, and an over-complex function is not attributed to the module it belongs to. |
+| 11 | **Python only, and syntactically valid Python at that.** There is no parse step, so a file with a syntax error is scanned rather than rejected. | Measurements from a broken file are meaningless but are reported without warning. |
+| 12 | **No cross-file analysis.** Each file is reviewed independently. | Duplication is detected within a file, not between files, and an over-complex function is not attributed to the module it belongs to. |
+
+### Open defect: the validator allows the hazardous configuration
+
+Limitation 8 is different in kind from the rest of this list, and is recorded
+here rather than quietly fixed.
+
+The chain is: the symbolic execution of `classify_severity` showed that a limit
+of 1 makes the MINOR and MAJOR bands unsatisfiable; the inter-procedural
+analysis of `rule_complexity` showed that no rule can emit INFO; composing them
+showed that **at a limit of 1 every finding is CRITICAL**. Those are properties
+of the arithmetic. `Thresholds.validate` then permits exactly that value:
+
+```python
+>>> Thresholds.validate("nesting_limit", 0)
+False
+>>> Thresholds.validate("nesting_limit", 1)
+True        # the configuration limitations 5 to 7 describe
+```
+
+The validator's docstring gives its reasoning - "a threshold of zero or less
+would make every rule fire on every function" - which is correct as far as it
+goes and was written before the banding had been analysed.
+
+**This has not been changed.** `model/thresholds.py` is shared scaffolding
+rather than any member's graded story, it has its own tests in
+`tests/test_model.py`, and the fix is a one-character change whose justification
+is three pages of path conditions. Changing it quietly would throw away the only
+part of it that is worth anything. It goes to the Sprint 1 review as a finding
+with a decision attached, and whatever is decided - tighten the validator to 2,
+or warn at 1 and allow it - will be recorded in
+[sprint-1-retrospective.md](docs/scrum/sprint-1-retrospective.md).
+
+It is also the clearest answer this project has to "what did the measurement
+tell you": a defect that no test suite would have found, reached by analysis,
+traced from a path condition to a line of validation code in a different module
+written by a different member.
 
 ### Why these are published rather than fixed
 
@@ -227,7 +264,8 @@ Numbers 5 to 7 are **properties of the banding scheme**, not bugs in it. The
 integer collapse at a limit of 1 is what the arithmetic says, and changing it
 would mean changing the bands for every limit to accommodate the smallest one.
 Documenting the hazard and recommending a minimum limit of 2 is the smaller
-intervention.
+intervention. Number 8, which is a defect rather than a property, is covered
+above.
 
 Number 1 could be fixed by tracking string state across lines, which is most of
 a tokenizer, and the project is explicitly line-based.

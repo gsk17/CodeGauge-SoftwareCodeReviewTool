@@ -170,6 +170,74 @@ Day 6 is the sharpest drop of the sprint — four stories merged the same aftern
 member, taking 30 points to 14 against an ideal of 22.4. That is **8.4 points ahead of the
 line**, and it clears the deficit the lost Friday created.
 
+## Known limitations
+
+CodeGauge analyses source **line by line** and never executes it. That choice is
+deliberate — the `ast` module is not taught in CO7095, and keeping the analysis
+line-based means every function after the scanner works on integers, which is
+what makes the symbolic execution in [docs/symbolic/](docs/symbolic/) tractable
+by hand. The cost is a set of approximations, listed here.
+
+Most of these were **derived** from the symbolic execution analyses rather than
+discovered by running the tool. Where that is the case the analysis is linked,
+because a limitation found by reasoning about path conditions is worth more than
+one found by accident.
+
+### Scanning
+
+| # | Limitation | Consequence |
+|---|---|---|
+| 1 | **A `def` inside a string literal is read as a function header.** The scanner does not track string state, so a line inside a triple-quoted block is indistinguishable from code. | A docstring containing an example function inflates the function count. The current behaviour is pinned by a test in `gsk17/test/blackbox/equivalence_partitioning/test_is_function_header.py` so that any future change to it is deliberate. |
+| 2 | **A tab counts as `tab_width` columns, configurable, defaulting to 4.** PEP 8 and the Python tokenizer treat a tab as advancing to the next multiple of 8. | Indentation depth is under-reported in tab-indented files unless `tab_width` is set to 8. The function is total in `tab_width` for every value ≥ 1 — [derived](docs/symbolic/gsk17-symbolic-execution.md), no upper bound exists — so setting 8 is always safe. |
+| 3 | **A trailing comment does not make a line a comment.** `x = 1  # note` is classified as code. | Comment-density figures measure whole-line comments only, and so under-report documentation in a file that favours trailing comments. This is the intended definition rather than a defect, but it is a definition a reader could reasonably expect to be the other one. |
+| 4 | **Decision points are counted from keyword occurrences, not from control flow.** A comprehension counts as one decision regardless of how many `for` and `if` clauses it contains. | Cyclomatic complexity is under-reported for comprehension-heavy code and over-reported where a keyword appears in a string. |
+
+### Severity banding
+
+Severity is `classify_severity(actual, limit)`: within the limit is INFO, up to
+half again over is MINOR, below twice the limit is MAJOR, at or above twice is
+CRITICAL. Two consequences follow from the integer arithmetic, and **both were
+found by symbolic execution rather than by testing**.
+
+| # | Limitation | Consequence |
+|---|---|---|
+| 5 | **At a limit of 1 the MINOR and MAJOR bands are unreachable.** MINOR requires `actual <= 1 + floor(1/2) = 1`, which the INFO branch has already taken; MAJOR requires `actual > 1 and actual < 2`, which has no integer solution. | A user who configures any limit of 1 sees only INFO and CRITICAL. [Derivation](docs/symbolic/ssl21-symbolic-execution.md) — no amount of sampling at a limit of 10 would reveal it. |
+| 6 | **No rule can ever emit an INFO issue.** Every `rule_*` function returns `None` when the measurement is within its limit, which is exactly the condition under which `classify_severity` would return INFO. The conjunction `actual > limit and actual <= limit` is unsatisfiable. | A report consumer that switches on all four severities has an arm that cannot be reached. INFO is reachable only by calling `classify_severity` directly. [Derivation](docs/symbolic/ssl21-symbolic-execution.md). |
+| 7 | **Combining 5 and 6: at a limit of 1, every issue a rule raises is CRITICAL.** Three of the four bands are gone — INFO by the rule shape, MINOR and MAJOR by the integer collapse. | **The number of severities the tool can report depends on how it is configured**, which is the most consequential limitation in this list. Recommended minimum for any configurable limit: **2**. |
+
+### Scoring
+
+| # | Limitation | Consequence |
+|---|---|---|
+| 8 | **The quality score is floored at 0 and capped at 40 when three or more critical issues are present.** Two files that are both very bad score identically once the floor is reached. | The score distinguishes "bad" from "worse" only above 0. The issue list, not the score, is what to read for a failing file. |
+| 9 | **The weights are fixed project constants** — 15 / 8 / 3 / 1 per issue. | A file's score is comparable with another file's only under the same weights. Scores recorded in the history file before a weight change are not comparable with ones after it, and nothing detects that. |
+
+### Analysis scope
+
+| # | Limitation | Consequence |
+|---|---|---|
+| 10 | **Python only, and syntactically valid Python at that.** There is no parse step, so a file with a syntax error is scanned rather than rejected. | Measurements from a broken file are meaningless but are reported without warning. |
+| 11 | **No cross-file analysis.** Each file is reviewed independently. | Duplication is detected within a file, not between files, and an over-complex function is not attributed to the module it belongs to. |
+
+### Why these are published rather than fixed
+
+Several could be fixed, and two deliberately are not.
+
+Numbers 5 to 7 are **properties of the banding scheme**, not bugs in it. The
+integer collapse at a limit of 1 is what the arithmetic says, and changing it
+would mean changing the bands for every limit to accommodate the smallest one.
+Documenting the hazard and recommending a minimum limit of 2 is the smaller
+intervention.
+
+Number 1 could be fixed by tracking string state across lines, which is most of
+a tokenizer, and the project is explicitly line-based.
+
+The rest are candidates for Sprint 3 or for future work, and are listed in the
+design notes as such.
+
+Documenting known limitations is itself a quality-assurance practice: a
+limitation stated in advance is a design decision, and the same limitation found
+by a marker is a defect.
 ---
 
 ## README update schedule
@@ -183,12 +251,13 @@ What to add, and when. Tick as you go.
       count and the coverage figure.
 - [ ] **Sprint 3** — the real menu options and the sample files, once the CLI story lands;
       replace the "prints the banner only" note.
-- [ ] **Phase 4 (hardening)** — the final coverage figure, and a **Known limitations**
-      section. The line-based design has real approximations: a `def` inside a string
-      literal, comprehension counting, triple-quoted blocks read as documentation, tabs
-      read as four spaces rather than eight, and the severity bands collapsing at a
-      threshold of 1. Documenting them is a quality-assurance practice and reads far
-      better than leaving them to be discovered.
+- [x] **Known limitations** — written early, on 18 November, rather than at hardening.
+      Six of the eleven entries were **derived** from the symbolic execution analyses
+      while that work was fresh; reconstructing them in December from finished code
+      would have been slower and would probably have missed the two that only appear
+      when two functions are composed. Revisit at Phase 4 to add anything Sprints 2
+      and 3 turn up.
+- [ ] **Phase 4 (hardening)** — the final coverage figure.
 - [ ] **Phase 5 (packaging)** — the full uncompress / PyCharm-import / run instructions for
       a Percy Gee lab machine, and one test command per member per technique. **The brief
       says a submission the graders cannot open and run, with a proper and comprehensive

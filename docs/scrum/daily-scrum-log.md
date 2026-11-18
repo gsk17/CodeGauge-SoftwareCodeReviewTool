@@ -334,3 +334,118 @@ Remaining: US07 (Gunjan, 3), US20 (Kasam, 3), US29 (Harshita, 8). Saaket has
 finished Sprint 1 two days early and will review the other three rather than
 take new work, since pulling a Sprint 2 story forward would distort the velocity
 figure the next sprint is planned from.
+
+---
+
+## 2026-11-18 (Sprint 1, day 7)
+
+**Gunjan**
+- Yesterday: US02 merged by pull request #42
+- Today: US07 `is_function_header` — failing tests written in both black-box
+  packages and observed failing, `4e1c706`
+- Impediments: `.git/config.lock` could not be renamed when `git push -u` tried
+  to record the upstream branch. The push itself reached GitHub; only the local
+  tracking entry failed. Resolved by deleting the stale lock and setting the
+  upstream separately. **`push -u` is now split into `git push` followed by
+  `git branch --set-upstream-to` for everyone**, which closes the window where
+  another process can hold `.git/config` open
+
+**Kasam**
+- Yesterday: US12 merged by pull request #43
+- Today: US20 `rule_nesting` — failing tests written in both black-box packages
+  and observed failing, `2ec1772`
+- Impediments: none. The branch was cut from `main`, which already carried
+  `core/rules.py` from Saaket's US19 merge yesterday, so the dependency
+  identified at planning never became a block
+
+**Harshita**
+- Yesterday: US30 merged by pull request #45
+- Today: US29 `score_from_issues` — failing tests written in both black-box
+  packages and observed failing, `8c4bc45`
+- Impediments: none
+
+**Saaket**
+- Yesterday: US19 merged; all three Sprint 1 stories complete
+- Today: no story work — Sprint 1 allocation finished. Wrote the README's
+  **Known limitations** section, twelve entries, six of them derived from the
+  symbolic execution analyses rather than observed. Then corrected one of his
+  own entries and recorded a defect found while checking it
+- Impediments: none
+
+### A defect found by analysis, not by testing
+
+Checking a claim in the limitations section against `model/thresholds.py` turned
+up the following chain:
+
+1. The symbolic execution of `classify_severity` (US26) showed that a limit of 1
+   makes the MINOR and MAJOR bands unsatisfiable — `actual <= 1 + floor(1/2)` is
+   consumed by INFO, and `actual > 1 and actual < 2` has no integer solution.
+2. The inter-procedural analysis of `rule_complexity` (US19) showed that no rule
+   can emit INFO, because `actual > limit and actual <= limit` is
+   unsatisfiable.
+3. Composing them: **at a limit of 1 every finding any rule raises is
+   CRITICAL.** Three of the four severity bands are unreachable.
+4. `Thresholds.validate` rejects 0 and below, and **permits 1**.
+
+So a user can set, from the menu, precisely the configuration at which the
+severity scale collapses, and nothing warns them.
+
+**Every test in the project passes and coverage is 100%.** No black-box test
+would find this — each function is correct in isolation. It took reasoning about
+path conditions across two members' modules to reach a line of validation code
+in a third file that nobody owns.
+
+The validator has **not** been changed. `model/thresholds.py` is shared
+scaffolding rather than a graded story, it has its own tests, and the fix is a
+one-character change whose justification is three pages of path conditions.
+Changing it quietly would discard the only part of it worth anything. It goes to
+the Sprint 1 review on Sunday as a finding with a decision attached — tighten
+the validator to 2, or warn at 1 and allow it — and the decision will be
+recorded in the retrospective either way.
+
+This is the clearest answer the project has so far to "what did the measurement
+tell us", and it should lead the sprint review.
+
+### A correction to yesterday's own work
+
+The first version of limitation 2 said `tab_width` was "configurable, defaulting
+to 4". Neither half was true: `tab_width` is a required parameter of
+`count_leading_spaces`, `Thresholds` does not carry it, and no default exists
+anywhere in the source. The entry advised users to set it to 8, which they
+cannot do.
+
+Corrected the same day, in `e082e3b`'s successor. Recorded here rather than
+silently amended, because the README is the document the markers read first and
+a wrong claim in it is worse than a missing one. Adding `tab_width` to
+`Thresholds` is now a Sprint 3 candidate.
+
+### Notes from today
+
+**US29 has the only genuinely subtle specification in Sprint 1.** The score is
+capped at 40 when three or more critical issues are present, and floored at 0.
+The two interact, and the order matters: with ten critical issues the raw score
+is `100 - 150 = -50`. A cap written as an assignment — "if critical >= 3 then
+score = 40" — returns 40, so ten critical issues would score *better* than five.
+The cap has to be a minimum against the running score, applied before the floor.
+`(3,0,0,0) == 40` and `(10,0,0,0) == 0` are the only pair of cases that
+distinguishes the two readings, and both are in the partition tests Harshita
+committed today.
+
+**US20 is deliberately almost identical to US19**, and the last partition test
+turns that into evidence: it asserts the two rules produce identical severities
+for identical numbers while carrying different codes. That is the test that
+fails if either story re-implements the bands instead of delegating to
+`classify_severity`. It imports `rule_complexity`, which is Saaket's function —
+as a consumer, not a change, and agreed at this stand-up so that ownership is
+not in doubt.
+
+**Sprint status at end of day 7:** 9 of 12 stories done, 42 of 56 points.
+14 remaining against an ideal of 16.8 — **2.8 points ahead of the line**. The
+three stories in progress are worth exactly the 14 that remain, and all three
+merge on Friday.
+
+Saaket has finished his Sprint 1 allocation and is not taking a Sprint 2 story
+forward: velocity is the figure Sprint 2 gets planned from, and borrowing
+against it now would make that forecast worse rather than better. He reviews the
+three remaining pull requests on Friday instead, and drafts the sprint review
+and retrospective before Sunday.

@@ -42,7 +42,7 @@ burn is 5.6 points per day.
 | — | Sun 15 Nov | — | 30 | US11 | unplanned weekend session to recover Friday; US11 merged, and US02, US12, US19 and US30 all started. Not a planned working day, so no ideal figure |
 | 5 | Mon 16 Nov | 28.0 | 30 | — | US02, US12, US19 and US30 all implemented; none merged yet, so the 0/100 rule earns them nothing |
 | 6 | Tue 17 Nov | 22.4 | 14 | US02 US12 US19 US30 | four stories merged, one per member; 16 points in a day |
-| 7 | Wed 18 Nov | 16.8 | _ | _ | |
+| 7 | Wed 18 Nov | 16.8 | 14 | — | US07, US20 and US29 all started; the last three Sprint 1 stories, worth exactly the 14 that remain |
 | 8 | Thu 19 Nov | 11.2 | _ | _ | |
 | 9 | Fri 20 Nov | 5.6 | _ | _ | |
 | 10 | Sun 22 Nov | 0.0 | _ | _ | sprint review and retrospective |

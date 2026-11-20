@@ -449,3 +449,184 @@ forward: velocity is the figure Sprint 2 gets planned from, and borrowing
 against it now would make that forecast worse rather than better. He reviews the
 three remaining pull requests on Friday instead, and drafts the sprint review
 and retrospective before Sunday.
+
+---
+
+## 2026-11-19 (Sprint 1, day 8)
+
+> Written on 20 November, not on the day. The work itself is in the commit
+> history dated the 19th — `bce23cd`, `b6937a7`, `5b7022d` and `0a67f8a` — so
+> only this entry was late, not the work. Recorded rather than back-dated.
+
+**Gunjan**
+- Yesterday: US07 failing tests committed and observed failing
+- Today: US07 `is_function_header` implemented, `bce23cd`
+- Impediments: none
+
+**Kasam**
+- Yesterday: US20 failing tests committed and observed failing
+- Today: US20 `rule_nesting` implemented, `b6937a7`
+- Impediments: none
+
+**Harshita**
+- Yesterday: US29 failing tests committed and observed failing
+- Today: US29 `score_from_issues` implemented, `5b7022d`
+- Impediments: none. The cap and the floor interact and the ordering had to be
+  reasoned out before the code went in — see the note below
+
+**Saaket**
+- Yesterday: wrote the README Known limitations section and recorded the
+  validator defect
+- Today: no story work, Sprint 1 allocation complete. Prepared the sprint review
+  and the retrospective, `0a67f8a`, so that Sunday can inspect the evidence
+  rather than spend the meeting gathering it
+- Impediments: none
+
+### The cap-before-floor ordering in US29
+
+`score_from_issues` caps the score at 40 when there are three or more critical
+issues, and floors it at 0. With ten critical issues the raw score is
+`100 - 150 = -50`. A cap written as an assignment — "if critical >= 3 then score
+= 40" — returns 40, so **ten critical issues would score better than five**. The
+cap has to be a minimum against the running score, applied before the floor.
+
+`(3,0,0,0) -> 40` and `(10,0,0,0) -> 0` is the only pair of inputs that
+distinguishes the two readings, and both were already in the failing tests
+committed on the 18th. The ordering was settled by the test before the
+implementation was written, which is the whole point of committing the test
+first.
+
+### A capacity gap found while preparing the retrospective
+
+`cocomo.md` records the team's available capacity as **192 person-hours** across
+the project — four members at roughly 8 hours each per week over six weeks. That
+figure was written to explain why COCOMO over-estimates. Put next to Sprint 1's
+actual hours it says something sharper.
+
+At the observed rate of 1.18 hours per story point:
+
+| Sprint | Points | Hours implied | Available | Hours/person/week needed |
+|---|---|---|---|---|
+| 1 | 56 | 66.0 actual | 64 | 8.3 |
+| 2 | 63 | 74.3 | 64 | 9.3 |
+| 3 | 77 | 90.9 | 64 | **11.4** |
+| **Total** | **196** | **231** | **192** | |
+
+**Sprint 1 landed almost exactly on the 8-hour assumption** — 66 hours against
+64 available — which is the closest thing to a validated planning figure this
+project has produced, and it means the 1.18 rate can be trusted for forecasting.
+
+It also means **Sprint 3 needs 42% more hours per person per week than Sprint 1
+actually took**, in the two weeks ending 20 December. The total overruns
+available capacity by about 39 hours, or 20%.
+
+The sprint totals were never set by capacity. They came out of where the
+planning poker round 2 values fell once the per-member balance was fixed —
+56 / 63 / 77, rising 38% across the project — and nobody checked that against
+hours, because until Sprint 1 closed there was no rate to check it with. There
+is now. Three options are set out in the retrospective for Sunday.
+
+**Sprint status at end of day 8:** 9 of 12 stories done, 42 of 56 points. 14
+remaining against an ideal of 11.2 — 2.8 behind, with all three remaining
+stories at commit 2 of 3 and merging tomorrow.
+
+---
+
+## 2026-11-20 (Sprint 1, day 9 — final working day)
+
+**Gunjan**
+- Yesterday: US07 implemented
+- Today: US07 white-box, symbolic and concolic cases, `3029ead`; pull request
+  #46 reviewed by Kasam and merged. Reviewed and merged Harshita's US29 (#48).
+  **Sprint 1 allocation complete — US01, US02, US07, 9 points**
+- Hours on US07: 5.0 against a 6 hour budget
+- Impediments: none
+
+**Kasam**
+- Yesterday: US20 implemented
+- Today: US20 white-box, symbolic and concolic cases, `6a33683`; pull request
+  #47 reviewed by Saaket and merged. Reviewed and merged Gunjan's US07 (#46).
+  **Sprint 1 allocation complete — US10, US12, US20, 13 points**
+- Hours on US20: 2.5 against a 6 hour budget — the cheapest story of the sprint
+- Impediments: none
+
+**Harshita**
+- Yesterday: US29 implemented
+- Today: US29 white-box, symbolic and concolic cases, `5ec7e46`; pull request
+  #48 reviewed by Gunjan and merged. Reviewed and merged Saaket's… no pull
+  request from Saaket this cycle, so the rotation ran Gunjan → Kasam → Saaket →
+  Gunjan for the three PRs. **Sprint 1 allocation complete — US28, US30, US29,
+  16 points**
+- Hours on US29: 9.5 against a 16 hour budget — the most expensive story of the
+  sprint
+- Impediments: none
+
+**Saaket**
+- Yesterday: prepared the review and retrospective
+- Today: reviewed and merged Kasam's US20 (#47). Added the two findings from
+  today's analyses to the README Known limitations — the vestigial score cap and
+  the nesting band collapse, `a3e4af4`. Fourteen entries now, eight of them
+  derived from symbolic execution rather than observed
+- Impediments: none
+
+### Sprint 1 is complete: 12 of 12 stories, 56 of 56 points
+
+| Member | Stories | Points |
+|---|---|---|
+| Gunjan | US01, US02, US07 | 9 |
+| Kasam | US10, US12, US20 | 13 |
+| Saaket | US26, US11, US19 | 18 |
+| Harshita | US28, US30, US29 | 16 |
+| **Total** | **12** | **56** |
+
+**492 tests passing. 100% statement coverage of all five `core` modules.**
+Twelve feature branches on the remote, none deleted. Every story merged through
+a reviewed pull request with a merge commit, never a squash, so the three-commit
+test-first order survives on every branch.
+
+### Two findings from today, both invisible to the black-box tests
+
+**The score cap is very nearly vestigial.** US29's symbolic analysis shows the
+cap can only fire when there are **exactly three** critical issues. `score > 40`
+requires `15C + rest < 60`; with `C >= 4` that needs `rest < 0`, which is
+impossible for non-negative counts. Four critical issues cost `4 × 15 = 60`,
+putting the raw score at exactly 40 — the cap value itself. Above three, the
+weighted penalty has already done everything the cap was designed to do.
+
+The black-box tests cannot detect this: they assert the score stays at or below
+40 when `critical >= 3`, which holds whether the cap or the weights produced it.
+
+**The nesting severity bands collapse at small limits.** US20's analysis shows
+that at a limit of 2 the MAJOR band is **empty** — it needs
+`depth > 3 and depth < 4` — and that at the project default of 3, the MINOR and
+MAJOR bands hold a single integer each: depth 4 is the only possible MINOR
+finding, 5 the only MAJOR, and everything from 6 up is CRITICAL. So **3 is the
+smallest limit at which all three reachable bands exist**, which the default
+happens to be by luck rather than by analysis.
+
+Both are now in the README. Added to the two found earlier in the sprint — INFO
+unreachable through any rule, and every finding CRITICAL at a limit of 1 — that
+is four configuration hazards found by reasoning about path conditions, none of
+which any test would have surfaced.
+
+### The one uncovered line in the project
+
+`model/thresholds.py` line 43 is the only statement in `core/` or `model/` with
+no test exercising it, and it sits inside `Thresholds.validate` — the function
+carrying the open defect found on 18 November.
+
+Untested code and a latent defect in the same three lines is the correlation
+quality assurance exists to predict, and it is worth saying at the review rather
+than hoping nobody notices the 99% next to the 100%.
+
+### Sprint close
+
+Remaining work before Sunday 22 November: tag `v0.1.0`, take the board
+screenshot with all twelve stories in Done, and hold the review and
+retrospective using the documents prepared on the 19th. Two decisions are queued
+and neither has been taken — the EVM baseline, and what to do about
+`Thresholds.validate`.
+
+**Sprint status at end of day 9:** **0 points remaining.** Ideal was 5.6, so the
+sprint finished one working day ahead of its own burn line, having been 4.4
+points behind it a week earlier.

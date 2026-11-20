@@ -43,8 +43,8 @@ burn is 5.6 points per day.
 | 5 | Mon 16 Nov | 28.0 | 30 | — | US02, US12, US19 and US30 all implemented; none merged yet, so the 0/100 rule earns them nothing |
 | 6 | Tue 17 Nov | 22.4 | 14 | US02 US12 US19 US30 | four stories merged, one per member; 16 points in a day |
 | 7 | Wed 18 Nov | 16.8 | 14 | — | US07, US20 and US29 all started; the last three Sprint 1 stories, worth exactly the 14 that remain |
-| 8 | Thu 19 Nov | 11.2 | _ | _ | |
-| 9 | Fri 20 Nov | 5.6 | _ | _ | |
+| 8 | Thu 19 Nov | 11.2 | 14 | — | US07, US20 and US29 all implemented; none merged, so the 0/100 rule earns them nothing |
+| 9 | Fri 20 Nov | 5.6 | **0** | US07 US20 US29 | all three merged; **sprint complete, 56 of 56 points**, one working day ahead of the burn line |
 | 10 | Sun 22 Nov | 0.0 | _ | _ | sprint review and retrospective |
 
 ## 3. Sprint 2 — 23 November to 6 December 2026, 63 points
@@ -91,7 +91,7 @@ closes in, not the one it started in.
 
 | Sprint | Committed | Completed | Carried over | Velocity |
 |---|---|---|---|---|
-| 1 | 56 | _ | _ | _ |
+| 1 | 56 | **56** | **0** | **56** |
 | 2 | 63 | _ | _ | _ |
 | 3 | 65 | _ | _ | _ |
 | **Average** | **65** | **_** | | **_** |
@@ -101,10 +101,10 @@ must finish all nine of their stories:
 
 | Member | Sprint 1 | Sprint 2 | Sprint 3 | Total (target 48) |
 |---|---|---|---|---|
-| Gunjan (M1, scanner) | 6/9 | /11 | /26 | 6/46 |
-| Kasam (M2, complexity) | 10/13 | /18 | /24 | 10/55 |
+| Gunjan (M1, scanner) | **9/9** | /11 | /26 | 9/46 |
+| Kasam (M2, complexity) | **13/13** | /18 | /24 | 13/55 |
 | Saaket (M3, rules) | **18/18** | /13 | /16 | 18/47 |
-| Harshita (M4, scoring) | 8/16 | /21 | /11 | 8/48 |
+| Harshita (M4, scoring) | **16/16** | /21 | /11 | 16/48 |
 
 ## 6. Plotting the charts for the report and the video
 

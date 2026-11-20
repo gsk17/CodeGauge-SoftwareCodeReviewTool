@@ -18,18 +18,19 @@ project **#17, Software Code Review Tool**.
 | Phase | Dates | State |
 |---|---|---|
 | Sprint 0 — design and planning | 4–7 Nov 2026 | **complete** |
-| Sprint 1 | 9–22 Nov 2026 | **in progress** |
+| Sprint 1 | 9–22 Nov 2026 | **complete** — 12 of 12 stories, 56 of 56 points |
 | Sprint 2 | 23 Nov–6 Dec 2026 | not started |
 | Sprint 3 | 7–20 Dec 2026 | not started |
 | Hardening | 21–27 Dec 2026 | not started |
 | Report, video, packaging | 28 Dec–3 Jan 2027 | not started |
 | Submitted | 4 Jan 2027 | not started |
 
-**User stories:** 9 of 36 done · 42 of 196 story points · Sprint 1 backlog: 12 stories, 56 points
-**Tests:** 319 passing · **Coverage:** 100% of `core/`
+**User stories:** 12 of 36 done · 56 of 196 story points · **Sprint 1 complete**
+**Tests:** 492 passing · **Coverage:** 100% of `core/`, 99% overall
 
-*As of 17 November 2026. Sprint 1 has US07, US20 and US29 left — 14 points across the three
-days to Friday 20 November.*
+*As of 20 November 2026. Velocity 56, nothing carried over. CPI 1.70, SPI 1.00 — the
+sprint delivered exactly what it committed, on time, in 40% fewer hours than budgeted.
+Sprint 2 begins 23 November.*
 
 <!-- PHASE: update this table and these two lines at every sprint review. -->
 
@@ -169,6 +170,10 @@ in [burndown-and-velocity.md](docs/measurement/burndown-and-velocity.md).
 Day 6 is the sharpest drop of the sprint — four stories merged the same afternoon, one per
 member, taking 30 points to 14 against an ideal of 22.4. That is **8.4 points ahead of the
 line**, and it clears the deficit the lost Friday created.
+
+The line reaches **zero on day 9** against an ideal of 5.6, so the sprint closed a full
+working day ahead of its own burn line — having been 4.4 points behind it a week earlier.
+All 56 committed points were delivered and nothing was carried over.
 
 ## Known limitations
 

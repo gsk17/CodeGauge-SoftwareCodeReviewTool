@@ -48,17 +48,17 @@ guess, and a guess makes CPI and SPI meaningless.
 |---|---|---|---|---|---|---|
 | US01 ✅ | Gunjan | `classify_line` | 3 | 6 | **5.0** | reference story; set the pattern the other 35 follow |
 | US02 ✅ | Gunjan | `count_leading_spaces` | 3 | 6 | **5.0** | the first function with a loop, so the first bounded-unrolling write-up |
-| US07 | Gunjan | `is_function_header` | 3 | 6 |  |  |
+| US07 ✅ | Gunjan | `is_function_header` | 3 | 6 | **5.0** | string predicates, no loop — the cleanest symbolic tree in the project |
 | US10 ✅ | Kasam | `decision_points` | 5 | 10 | **6.0** | branch initially cut from the US01 branch rather than main; resolved by merging US01 first |
 | US12 ✅ | Kasam | `max_nesting_depth` | 5 | 10 | **6.0** | two sequential loops; the analysis found three single-solution path conditions |
-| US20 | Kasam | `rule_nesting` | 3 | 6 |  |  |
+| US20 ✅ | Kasam | `rule_nesting` | 3 | 6 | **2.5** | **cheapest story of the sprint** — US19 had already settled the rule shape |
 | US11 ✅ | Saaket | `cyclomatic_complexity` | 8 | 16 | **7.0** | tests written 12 Nov, finished in an unplanned Sunday session on 15 Nov to recover the lost Friday |
 | US19 ✅ | Saaket | `rule_complexity` | 5 | 10 | **4.5** | cheapest of the five-pointers; `classify_severity` did the banding, so the rule is nine lines |
 | US26 ✅ | Saaket | `classify_severity` | 5 | 10 | **6.0** | dependency root - every rule story calls it, so taken first |
 | US28 ✅ | Harshita | `weighted_penalty` | 5 | 10 | **6.0** | implementation waited on US26 merging for the severity constants |
-| US29 | Harshita | `score_from_issues` | 8 | 16 |  |  |
+| US29 ✅ | Harshita | `score_from_issues` | 8 | 16 | **9.5** | **most expensive** — the cap and floor interact and nothing preceded it |
 | US30 ✅ | Harshita | `grade_band` | 3 | 6 | **3.5** | cheapest story so far; no dependencies and the bands were already agreed |
-| | | **Closed so far** | **42** | **84** | **49.0** | 9 of 12 stories. CPI 84 / 49.0 = **1.71** |
+| | | **Sprint complete** | **56** | **112** | **66.0** | **12 of 12 stories.** CPI 112 / 66.0 = **1.70**, SPI 1.00 |
 | | | **Sprint committed** | **56** | **112** | | |
 
 ### Sprint 2 — 63 points, 126 hours budgeted
@@ -101,8 +101,8 @@ guess, and a guess makes CPI and SPI meaningless.
 
 | | Points | Budget (h) | Actual (h) | CPI |
 |---|---|---|---|---|
-| Closed | 42 | 84 | 49.0 | **1.71** |
-| Remaining | 154 | 308 | — | — |
+| Closed | 56 | 112 | 66.0 | **1.70** |
+| Remaining | 140 | 280 | — | — |
 | **Budget at Completion** | **196** | **392** | | |
 
 ## Rolling up to EVM

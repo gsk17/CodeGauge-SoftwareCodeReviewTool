@@ -16,6 +16,7 @@ from model.issue import Issue
 
 #: rule codes, one per rule. The code identifies the rule, not the severity.
 CODE_COMPLEXITY = "CC001"
+CODE_NESTING = "NEST001"
 
 
 def rule_complexity(cc, limit, line):
@@ -42,3 +43,35 @@ def rule_complexity(cc, limit, line):
     severity = classify_severity(cc, limit)
     message = "cyclomatic complexity %d exceeds limit %d" % (cc, limit)
     return Issue(CODE_COMPLEXITY, severity, line, message)
+
+
+def rule_nesting(depth, limit, line):
+    """Raise an issue when a function is nested too deeply - US20.
+
+    The same shape as rule_complexity: None when the measurement is within its
+    limit, an Issue when it is over, and the severity delegated to
+    classify_severity so that every rule in the tool grades on one scale. The
+    limit is inclusive, so a function sitting exactly on the configured
+    maximum is acceptable.
+
+    The duplication with rule_complexity is deliberate. The two could be one
+    parameterised function taking a code and a message template, but each rule
+    is a separately graded user story owned by a different member, and a shared
+    helper would put two sets of marks inside one function. The cost is a
+    near-identical body; the benefit is that the two can be assessed apart.
+
+    What the two rules must share is the banding, and they do - both call
+    classify_severity rather than deciding for themselves. A test in
+    khm12/test/blackbox/equivalence_partitioning/ asserts that the two produce
+    identical severities for identical numbers while carrying different codes,
+    which is what would fail if either one re-implemented the bands.
+    """
+    if depth < 0:                          # a nesting depth is never negative
+        raise ValueError("depth must not be negative, got %r" % (depth,))
+    if limit < 1:                          # the contract classify_severity sets
+        raise ValueError("limit must be at least 1, got %r" % (limit,))
+    if depth <= limit:                     # within budget: no finding
+        return None
+    severity = classify_severity(depth, limit)
+    message = "nesting depth %d exceeds limit %d" % (depth, limit)
+    return Issue(CODE_NESTING, severity, line, message)

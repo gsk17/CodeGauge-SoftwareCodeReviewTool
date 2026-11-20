@@ -275,6 +275,207 @@ order and find the same seven paths.
 
 ---
 
-## US29 — `score_from_issues(critical, major, minor, info)`
+## US29 — `core.scoring.score_from_issues(critical, major, minor, info)`
 
-*To be completed when the story is implemented.*
+### 1. The function, with branches labelled
+
+```python
+def score_from_issues(critical, major, minor, info):
+    for name, value in counts:         # L   fixed four iterations
+        if value < 0:                  # b1
+            raise ValueError(...)
+    penalty = 15*critical + 8*major + 3*minor + 1*info
+    score = 100 - penalty
+    if critical >= 3:                  # b2  the cap applies at all
+        if score > 40:                 # b3  and only then lowers the score
+            score = 40
+    if score < 0:                      # b4  the floor
+        score = 0
+    return score
+```
+
+### 2. Symbolic inputs
+
+`C`, `M`, `N`, `I`, symbolic integers. The validation loop runs a fixed four
+times — the count comes from the signature, not from the data — so unlike US12
+and US02 no bounding is required and the tree is complete.
+
+Writing `P = 15C + 8M + 3N + I` for the penalty and `R = 100 - P` for the raw
+score, every constraint is linear in the four variables.
+
+### 3. Symbolic execution tree
+
+```
+        validation loop, four iterations
+    C<0 ──true──> P1: ValueError
+     │false
+    M<0 ──true──> P2: ValueError
+     │false
+    N<0 ──true──> P3: ValueError
+     │false
+    I<0 ──true──> P4: ValueError
+     │false
+   R = 100 - P
+    [b2] C >= 3 ?
+    /            \
+true/              \false
+   /                \
+[b3] R > 40 ?      [b4] R < 0 ?
+ /        \          /       \
+true     false   true       false
+ │         │       │          │
+score=40  [b4]   P8: 0     P9: R
+ │       R < 0 ?
+[b4]      /    \
+R<40?  true   false
+ │      │       │
+ │    P6: 0   P7: R
+P5: 40
+```
+
+Nine leaves, nine paths.
+
+### 4. Path conditions and solved witnesses
+
+| Path | Path condition | Witness | R | Returns |
+|---|---|---|---|---|
+| P1 | `C < 0` | `(-1,0,0,0)` | — | `ValueError` |
+| P2 | `C >= 0, M < 0` | `(0,-1,0,0)` | — | `ValueError` |
+| P3 | `C,M >= 0, N < 0` | `(0,0,-1,0)` | — | `ValueError` |
+| P4 | `C,M,N >= 0, I < 0` | `(0,0,0,-1)` | — | `ValueError` |
+| P5 | all `>= 0`, `C >= 3`, `R > 40` | `(3,0,0,0)` | 55 | `40` |
+| P6 | all `>= 0`, `C >= 3`, `R <= 40`, `R < 0` | `(10,0,0,0)` | −50 | `0` |
+| P7 | all `>= 0`, `C >= 3`, `0 <= R <= 40` | `(5,0,0,0)` | 25 | `R` |
+| P8 | all `>= 0`, `C < 3`, `R < 0` | `(0,13,0,0)` | −4 | `0` |
+| P9 | all `>= 0`, `C < 3`, `R >= 0` | `(0,0,1,0)` | 97 | `R` |
+
+**P1 to P4 are distinct for a structural reason.** Validation is a complete
+pass over all four counts before any arithmetic happens, so a negative value in
+the fourth position is rejected only after the first three have passed. Fusing
+validation into the penalty sum would collapse these four paths into one and
+lose the guarantee that *every* count is checked.
+
+**Working for P7.** The conjunction is all counts `>= 0`, `C >= 3`, `R <= 40`,
+`R >= 0`. Fixing `M = N = I = 0` leaves `R = 100 - 15C`, so `R <= 40` requires
+`C >= 4` and `R >= 0` requires `C <= 6`. The feasible set is `C in {4, 5, 6}`;
+`C = 5` is taken, with `C = 4` used separately below because it sits exactly on
+the P5/P7 boundary.
+
+### 4a. Finding 1 — the floor is unreachable once the cap has fired
+
+On P5 the score is **assigned** 40 before b4 is evaluated, and 40 is not below
+zero. So the sub-path "cap fires, then floor fires" requires:
+
+```
+score = 40   and   score < 0        unsatisfiable
+```
+
+The tree therefore has nine leaves rather than ten, and the missing one is a
+genuine infeasible path rather than an untested one. It is reported as such in
+the coverage table.
+
+### 4b. Finding 2 — the cap can only ever fire at exactly three critical issues
+
+This is the result worth having, and it is not visible from reading the code.
+
+P5 requires both `C >= 3` and `R > 40`. Substituting `R`:
+
+```
+100 - 15C - (8M + 3N + I) > 40
+15C + (8M + 3N + I) < 60
+```
+
+With `C >= 3`:  `45 + (8M + 3N + I) < 60`,  so  `8M + 3N + I < 15`.
+With `C >= 4`:  `60 + (8M + 3N + I) < 60`,  so  `8M + 3N + I < 0` — and all
+three counts are non-negative on this path, so this is **unsatisfiable**.
+
+**Therefore P5 requires `C == 3` exactly**, together with the other three
+severities contributing fewer than 15 penalty points.
+
+The cause is arithmetic rather than intentional. Four critical issues cost
+`4 × 15 = 60`, which puts the raw score at exactly **40 — the cap value
+itself**. Above three criticals, the weighted penalty has already done
+everything the cap was designed to do.
+
+**So the cap is very nearly vestigial.** It changes the answer only for a file
+with exactly three critical issues and little else: `(3,0,0,0)` through
+`(3,0,0,14)`, `(3,1,0,0)` through `(3,1,0,6)`, `(3,0,1,0)` through
+`(3,0,4,2)`, and a handful of similar combinations. For every other input in
+the domain, the weights and the floor alone produce the same number.
+
+This is a finding about the **specification**, not the implementation. The
+implementation satisfies the spec exactly; the spec contains a rule that fires
+on one value of one argument. Whether that rule is worth having is a question
+for the sprint review, and it is recorded in the README's known limitations.
+
+It is also the second time symbolic execution has found that a project rule is
+narrower than it looks — the first was the INFO band being unreachable through
+any `rule_*` function. Both were invisible to the black-box tests, which assert
+only that the cap holds the score at or below 40 when `critical >= 3`; that
+assertion passes whether the cap is doing the work or the weights are.
+
+### 5. Concolic execution
+
+Seeded with `(0, 0, 0, 0)` — a clean file, the cheapest seed to justify and the
+furthest from the interesting behaviour:
+
+| It. | Input | Path | Collected PC | Branch negated | Next input |
+|---|---|---|---|---|---|
+| 1 | `(0,0,0,0)` | P9 → 100 | all `>= 0`, `C<3`, `R>=0` | `C < 3` → `C >= 3` | `(3,0,0,0)` |
+| 2 | `(3,0,0,0)` | P5 → 40 | `… C>=3, R>40` | `R > 40` → `R <= 40` | `(4,0,0,0)` |
+| 3 | `(4,0,0,0)` | P7 → 40 | `… R<=40, R>=0` | `R >= 0` → `R < 0` | `(10,0,0,0)` |
+| 4 | `(10,0,0,0)` | P6 → 0 | `… R<0` | backtrack b2: `C>=3` → `C<3`, keeping `R<0` | `(0,13,0,0)` |
+| 5 | `(0,13,0,0)` | P8 → 0 | `C<3, R<0` | backtrack to validation: `I>=0` → `I<0` | `(0,13,0,-1)` |
+| 6 | `(0,13,0,-1)` | P4 | `… I<0` | `N >= 0` → `N < 0` | `(0,13,-1,0)` |
+| 7 | `(0,13,-1,0)` | P3 | `… N<0` | `M >= 0` → `M < 0` | `(0,-1,0,0)` |
+| 8 | `(0,-1,0,0)` | P2 | `C>=0, M<0` | `C >= 0` → `C < 0` | `(-1,0,0,0)` |
+| 9 | `(-1,0,0,0)` | P1 | `C < 0` | none left | — |
+
+Nine iterations, nine paths, **100% path coverage**.
+
+**Iteration 2 is where the solver does something a person would not.** The
+constraint is `C >= 3` conjoined with what has already been collected, and the
+solver returns the smallest satisfying value, 3 — which Finding 2 shows is the
+*only* value of `C` for which the cap can fire. The walk lands on the single
+interesting input by solving for a boundary, without knowing anything about the
+cap.
+
+**Iteration 3 then negates `R > 40` and returns `(4,0,0,0)`**, which sits
+exactly on the cap value. A person writing these cases by hand would very
+likely pick `(5,0,0,0)` — comfortably below the cap — and so would never
+distinguish `score > 40` from `score >= 40`. **This is the clearest case in the
+project of concolic execution producing a better test than hand-selection
+would have**, and it is worth stating plainly: the technique earned its place
+here rather than merely reproducing what boundary value analysis already gave.
+
+**Iteration 4 is the one the solver has to work at.** It must satisfy `C < 3`
+while keeping `R < 0`, so the penalty has to come from somewhere other than
+critical issues: with `C = 0` it needs `8M + 3N + I > 100`, and `M = 13` gives
+104. A walk that only varied `C` could not reach P8 at all.
+
+**The floor is never reached from the cap branch**, in any iteration. That
+matches the infeasible path proved in section 4a — the walk demonstrates the
+unreachability by never going there.
+
+### 6. Resulting test cases
+
+| File | Contents |
+|---|---|
+| `hcg22/test/whitebox/branch_coverage/test_score_from_issues.py` | eight branch outcomes, including b1 at each of the four argument positions |
+| `hcg22/test/whitebox/symbolic_execution/test_score_from_issues.py` | one test per path, plus both findings as domain sweeps |
+| `hcg22/test/whitebox/concolic_testing/test_score_from_issues.py` | the nine iterations in generated order |
+
+Finding 2 is asserted by counting, over a bounded region of the input space,
+every input where the capped and uncapped results differ, and then checking
+that **all** of them have `critical == 3`.
+
+### 7. Coverage
+
+| Measure | Value |
+|---|---|
+| Paths in the tree | 9 |
+| Paths tested | 9 |
+| Infeasible paths found | **1** — the floor cannot fire after the cap |
+| Narrowed specification found | **1** — the cap fires only at `critical == 3` |
+| Branch outcomes | 8 of 8 reachable |
+| Statement coverage of `score_from_issues` | 100% |

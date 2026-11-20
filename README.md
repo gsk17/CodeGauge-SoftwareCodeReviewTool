@@ -204,25 +204,27 @@ found by symbolic execution rather than by testing**.
 | 5 | **At a limit of 1 the MINOR and MAJOR bands are unreachable.** MINOR requires `actual <= 1 + floor(1/2) = 1`, which the INFO branch has already taken; MAJOR requires `actual > 1 and actual < 2`, which has no integer solution. | A user who configures any limit of 1 sees only INFO and CRITICAL. [Derivation](docs/symbolic/ssl21-symbolic-execution.md) — no amount of sampling at a limit of 10 would reveal it. |
 | 6 | **No rule can ever emit an INFO issue.** Every `rule_*` function returns `None` when the measurement is within its limit, which is exactly the condition under which `classify_severity` would return INFO. The conjunction `actual > limit and actual <= limit` is unsatisfiable. | A report consumer that switches on all four severities has an arm that cannot be reached. INFO is reachable only by calling `classify_severity` directly. [Derivation](docs/symbolic/ssl21-symbolic-execution.md). |
 | 7 | **Combining 5 and 6: at a limit of 1, every issue a rule raises is CRITICAL.** Three of the four bands are gone — INFO by the rule shape, MINOR and MAJOR by the integer collapse. | **The number of severities the tool can report depends on how it is configured**, which is the most consequential limitation in this list. Recommended minimum for any configurable limit: **2**. |
-| 8 | **`Thresholds.validate` permits a limit of 1, which is the configuration limitations 5 to 7 describe.** The validator rejects 0 and below, on the reasoning that a threshold of zero would make every rule fire on every function. It does not reject 1. | A user can set, from the menu, precisely the value at which three of the four severity bands become unreachable, and nothing warns them. **This is an open defect, not a documented design decision** — see the note below. |
+| 8 | **At a nesting limit of 2 the MAJOR band is empty, and at the default of 3 the MINOR and MAJOR bands hold one value each.** MAJOR at a limit of 2 needs `depth > 3 and depth < 4`. At a limit of 3, depth 4 is the only MINOR finding possible and 5 the only MAJOR one; everything from 6 up is CRITICAL. | The severity scale is far coarser in practice than its four names suggest, and **3 is the smallest nesting limit at which all three reachable bands exist** - which the project default happens to be, by luck rather than design. Lowering it to 2 silently removes a band. [Derivation](docs/symbolic/khm12-symbolic-execution.md). |
+| 9 | **`Thresholds.validate` permits a limit of 1, which is the configuration limitations 5 to 8 describe.** The validator rejects 0 and below, on the reasoning that a threshold of zero would make every rule fire on every function. It does not reject 1. | A user can set, from the menu, precisely the value at which three of the four severity bands become unreachable, and nothing warns them. **This is an open defect, not a documented design decision** — see the note below. |
 
 ### Scoring
 
 | # | Limitation | Consequence |
 |---|---|---|
-| 9 | **The quality score is floored at 0 and capped at 40 when three or more critical issues are present.** Two files that are both very bad score identically once the floor is reached. | The score distinguishes "bad" from "worse" only above 0. The issue list, not the score, is what to read for a failing file. |
-| 10 | **The weights are fixed project constants** — 15 / 8 / 3 / 1 per issue. | A file's score is comparable with another file's only under the same weights. Scores recorded in the history file before a weight change are not comparable with ones after it, and nothing detects that. |
+| 10 | **The score cap fires only when there are exactly three critical issues.** The cap holds the score at 40 when `critical >= 3`, but four critical issues cost `4 x 15 = 60`, which already puts the raw score at exactly 40. Above three, the weighted penalty has done everything the cap was meant to do. | The cap changes the result only for a file with exactly three critical issues and fewer than 15 penalty points of other findings. **It is very nearly vestigial**, and the black-box tests cannot tell - they assert only that the score stays at or below 40, which holds whether the cap or the weights produced it. [Derivation](docs/symbolic/hcg22-symbolic-execution.md). |
+| 11 | **The quality score is floored at 0 and capped at 40 when three or more critical issues are present.** Two files that are both very bad score identically once the floor is reached. | The score distinguishes "bad" from "worse" only above 0. The issue list, not the score, is what to read for a failing file. |
+| 12 | **The weights are fixed project constants** — 15 / 8 / 3 / 1 per issue. | A file's score is comparable with another file's only under the same weights. Scores recorded in the history file before a weight change are not comparable with ones after it, and nothing detects that. |
 
 ### Analysis scope
 
 | # | Limitation | Consequence |
 |---|---|---|
-| 11 | **Python only, and syntactically valid Python at that.** There is no parse step, so a file with a syntax error is scanned rather than rejected. | Measurements from a broken file are meaningless but are reported without warning. |
-| 12 | **No cross-file analysis.** Each file is reviewed independently. | Duplication is detected within a file, not between files, and an over-complex function is not attributed to the module it belongs to. |
+| 13 | **Python only, and syntactically valid Python at that.** There is no parse step, so a file with a syntax error is scanned rather than rejected. | Measurements from a broken file are meaningless but are reported without warning. |
+| 14 | **No cross-file analysis.** Each file is reviewed independently. | Duplication is detected within a file, not between files, and an over-complex function is not attributed to the module it belongs to. |
 
 ### Open defect: the validator allows the hazardous configuration
 
-Limitation 8 is different in kind from the rest of this list, and is recorded
+Limitation 9 is different in kind from the rest of this list, and is recorded
 here rather than quietly fixed.
 
 The chain is: the symbolic execution of `classify_severity` showed that a limit
@@ -235,7 +237,7 @@ of the arithmetic. `Thresholds.validate` then permits exactly that value:
 >>> Thresholds.validate("nesting_limit", 0)
 False
 >>> Thresholds.validate("nesting_limit", 1)
-True        # the configuration limitations 5 to 7 describe
+True        # the configuration limitations 5 to 8 describe
 ```
 
 The validator's docstring gives its reasoning - "a threshold of zero or less
@@ -260,11 +262,11 @@ written by a different member.
 
 Several could be fixed, and two deliberately are not.
 
-Numbers 5 to 7 are **properties of the banding scheme**, not bugs in it. The
+Numbers 5 to 8 are **properties of the banding scheme**, not bugs in it. The
 integer collapse at a limit of 1 is what the arithmetic says, and changing it
 would mean changing the bands for every limit to accommodate the smallest one.
 Documenting the hazard and recommending a minimum limit of 2 is the smaller
-intervention. Number 8, which is a defect rather than a property, is covered
+intervention. Number 9, which is a defect rather than a property, is covered
 above.
 
 Number 1 could be fixed by tracking string state across lines, which is most of

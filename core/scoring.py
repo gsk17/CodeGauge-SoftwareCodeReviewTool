@@ -68,3 +68,63 @@ def grade_band(score):
     if score >= GRADE_D_FLOOR:
         return "D"
     return "F"                             # implicit else: below every floor
+
+
+#: three or more critical issues hold the score down to this value
+CRITICAL_CAP_COUNT = 3
+CAPPED_SCORE = 40
+
+#: the score a file with no findings earns, and the lowest possible score
+PERFECT_SCORE = 100
+WORST_SCORE = 0
+
+
+def score_from_issues(critical, major, minor, info):
+    """Quality score out of 100 from the issue counts - US29.
+
+    A review starts at 100 and pays a weighted penalty per issue. Two rules
+    then adjust the result, and the order in which they apply is the part of
+    this function that actually needs care.
+
+    **The cap is a maximum, not an assignment.** Three or more critical issues
+    hold the score down to 40 - but a file with ten critical issues must not
+    score the same as one with three, and must certainly not score better than
+    one with five. So the cap is applied as "lower the score to 40 if it is
+    above 40", never as "set the score to 40":
+
+        (3, 0, 0, 0)   raw 55   -> capped to 40
+        (4, 0, 0, 0)   raw 40   -> already at the cap, unchanged
+        (5, 0, 0, 0)   raw 25   -> below the cap, left alone
+        (10, 0, 0, 0)  raw -50  -> below the cap, then floored to 0
+
+    Written as an assignment, the last of those would return 40, and ten
+    critical issues would score better than five. The pair (3,0,0,0) -> 40 and
+    (10,0,0,0) -> 0 is the only pair of inputs that distinguishes the two
+    readings, and both are in the black-box tests.
+
+    **The floor applies last**, after the cap, for the same reason: the cap can
+    only lower a score, so a score already below zero must still be raised to
+    zero afterwards.
+
+    The weights are the module constants rather than parameters, because two
+    reviews of the same file have to be comparable. weighted_penalty (US28)
+    takes them as arguments for the cases where a caller wants to vary the
+    policy; this function is the fixed project scoring.
+    """
+    counts = (("critical", critical), ("major", major),
+              ("minor", minor), ("info", info))
+    for name, value in counts:
+        if value < 0:
+            raise ValueError("%s must not be negative, got %r" % (name, value))
+
+    penalty = (CRITICAL_WEIGHT * critical + MAJOR_WEIGHT * major
+               + MINOR_WEIGHT * minor + INFO_WEIGHT * info)
+    score = PERFECT_SCORE - penalty
+
+    if critical >= CRITICAL_CAP_COUNT:     # the cap applies at all
+        if score > CAPPED_SCORE:           # and only ever lowers the score
+            score = CAPPED_SCORE
+
+    if score < WORST_SCORE:                # the floor, applied after the cap
+        score = WORST_SCORE
+    return score

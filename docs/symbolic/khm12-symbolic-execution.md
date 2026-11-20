@@ -305,3 +305,220 @@ not for any loop-free function in this project.
 | Path conditions with a unique solution | 3 — P4, P9, P10 |
 | Infeasible paths | 0 |
 | Statement coverage of `max_nesting_depth` | 100% |
+
+---
+
+## US20 — `core.rules.rule_nesting(depth, limit, line)`
+
+> `rule_nesting` lives in `core/rules.py`, which Saaket created with US19.
+> Ownership on this project is per function rather than per module, agreed at
+> the 17 November stand-up before the work started, so this module holds two
+> members' functions in the same way `core/complexity.py` holds Saaket's
+> `cyclomatic_complexity`.
+
+### 1. The function, with branches labelled
+
+```python
+def rule_nesting(depth, limit, line):
+    if depth < 0:                        # b1
+        raise ValueError(...)
+    if limit < 1:                        # b2
+        raise ValueError(...)
+    if depth <= limit:                   # b3
+        return None
+    severity = classify_severity(depth, limit)   # inlined below
+    return Issue(CODE_NESTING, severity, line, message)
+```
+
+With `classify_severity` (US26) inlined:
+
+```python
+    if depth <= limit + limit // 2:      # b4  -> MINOR
+    if depth < 2 * limit:                # b5  -> MAJOR
+    (implicit else)                      # b6  -> CRITICAL
+```
+
+### 2. Symbolic inputs
+
+`D` (depth), `L` (limit) and `N` (line), symbolic integers. `N` is carried into
+the `Issue` untouched and appears in **no path condition**, so no choice of line
+number can change which path executes.
+
+### 3. Symbolic execution tree
+
+```
+                PC: true
+                [b1] D < 0 ?
+               /            \
+         true /              \ false
+             /                \
+    P1: ValueError        PC: D >= 0
+                          [b2] L < 1 ?
+                         /            \
+                   true /              \ false
+                       /                \
+              P2: ValueError      PC: D>=0 and L>=1
+                                  [b3] D <= L ?
+                                 /            \
+                           true /              \ false
+                               /                \
+                        P3: None          PC: ... and D > L
+                        (no finding)      [b4] D <= L + L//2 ?
+                                         /                  \
+                                   true /                    \ false
+                                       /                      \
+                            P4: Issue MINOR          [b5] D < 2L ?
+                                                     /            \
+                                               true /              \ false
+                                                   /                \
+                                      P5: Issue MAJOR      P6: Issue CRITICAL
+```
+
+Six leaves, six paths.
+
+### 4. Path conditions and solved witnesses
+
+Witnesses use `L = 3`, the project default, rather than US19's `L = 10`.
+Nesting limits are small in practice — a configured limit above about 6 would be
+unusual — and the bands behave differently at small limits, as section 4c shows.
+
+| Path | Path condition | Witness | Returns |
+|---|---|---|---|
+| P1 | `D < 0` | `(-1, 3)` | `ValueError` |
+| P2 | `D >= 0 and L < 1` | `(5, 0)` | `ValueError` |
+| P3 | `D >= 0 and L >= 1 and D <= L` | `(3, 3)` | `None` |
+| P4 | `… and D > L and D <= L + floor(L/2)` | `(4, 3)` | `Issue`, MINOR |
+| P5 | `… and D > L + floor(L/2) and D < 2L` | `(5, 3)` | `Issue`, MAJOR |
+| P6 | `… and D > L + floor(L/2) and D >= 2L` | `(6, 3)` | `Issue`, CRITICAL |
+
+**Working for P5.** With `L = 3`, `floor(L/2) = 1`, so the constraints on `D`
+collapse to `D > 4` and `D < 6`. The feasible set is `{5}` — a single integer.
+See section 4c.
+
+**Working for P2.** `D = 5` rather than `0`, so that the witness also
+demonstrates b1 was evaluated and passed rather than skipped.
+
+### 4a. This tree is structurally identical to US19's
+
+That is the point of the analysis rather than a shortcut in writing it. The two
+rules were written separately, by different members, a day apart. Their trees
+coming out the same shape below b3 is what demonstrates the shared contract was
+actually honoured — had either re-implemented the banding instead of calling
+`classify_severity`, the trees would diverge there.
+
+The black-box tests assert the same thing from the outside: a test in
+`khm12/test/blackbox/equivalence_partitioning/` checks that the two rules return
+identical severities for identical `(actual, limit)` pairs while carrying
+different codes. The symbolic analysis explains *why* that holds rather than
+merely observing that it does.
+
+### 4b. The two US19 findings are properties of the rule shape
+
+Both findings from the US19 analysis reappear here unchanged, which establishes
+that they belong to the **pattern** rather than to `rule_complexity`:
+
+**Finding 1 — INFO is unreachable.** The INFO branch of `classify_severity`
+requires `D <= L`, and P3 has already returned `None` under exactly that
+condition. `D > L and D <= L` is unsatisfiable, so no issue this rule raises
+can carry INFO.
+
+**Finding 2 — at a limit of 1, only CRITICAL survives.** With `L = 1`: MINOR
+requires `D <= 1 + floor(1/2) = 1`, which P3 consumes; MAJOR requires
+`D > 1 and D < 2`, which has no integer solution.
+
+Any future `rule_*` function built on this shape will have both properties
+without anyone needing to re-derive them. That is a more useful result than
+either individual finding.
+
+### 4c. Finding 3 — the band collapse is worse at small limits, and nesting limits are small
+
+New here, and specific to nesting rather than inherited from US19.
+
+Counting the reachable severities at each realistic limit:
+
+| `L` | MINOR band | MAJOR band | CRITICAL | Reachable bands |
+|---|---|---|---|---|
+| 1 | empty — `D <= 1` consumed by P3 | empty — `D > 1 and D < 2` | `D >= 2` | **1** |
+| 2 | `{3}` | empty — `D > 3 and D < 4` | `D >= 4` | **2** |
+| 3 | `{4}` | `{5}` | `D >= 6` | **3** |
+| 4 | `{5, 6}` | `{7}` | `D >= 8` | 3 |
+| 10 | `{11…15}` | `{16…19}` | `D >= 20` | 3 |
+
+At `L = 2` the MAJOR band is **empty**: it requires `D > 2 + 1 = 3` and
+`D < 4`, which has no integer solution. So the severity scale does not reach
+its full three reachable bands until a limit of **3**.
+
+**The project default for `nesting_limit` is exactly 3** — the smallest limit at
+which this rule can express the whole range it is capable of.
+
+That is luck rather than design. The default was chosen in the implementation
+plan as a reasonable nesting depth for Python, not by analysing the bands. It is
+recorded here because anyone adjusting it needs to know that **lowering it to 2
+silently removes a severity band, and lowering it to 1 removes two** — and
+because `Thresholds.validate` currently permits both.
+
+Note also from the table that at `L = 3` the MINOR and MAJOR bands each hold a
+**single integer**. At the project default, a nesting depth of 4 is the only
+MINOR finding possible and 5 the only MAJOR one. Everything from 6 upwards is
+CRITICAL. The scale is far coarser in practice than its four names suggest.
+
+**No infeasible paths at `L >= 3`.** All six are satisfiable. At `L = 2` paths
+P5 is infeasible, and at `L = 1` both P4 and P5 are — which is Finding 2 and
+Finding 3 stated as a path property.
+
+### 5. Concolic execution
+
+Seeded with `(D, L) = (1, 3)` — a shallow function inside the default limit:
+
+| It. | Input | Path | Collected PC | Branch negated | Next input |
+|---|---|---|---|---|---|
+| 1 | `(1, 3)` | P3 → `None` | `D>=0, L>=1, D<=L` | `D <= L` → `D > L` | `(4, 3)` |
+| 2 | `(4, 3)` | P4 → MINOR | `… D <= L+L//2` | → `D > L+L//2` | `(5, 3)` |
+| 3 | `(5, 3)` | P5 → MAJOR | `… D < 2L` | → `D >= 2L` | `(6, 3)` |
+| 4 | `(6, 3)` | P6 → CRITICAL | `… D >= 2L` | backtrack b2: `L >= 1` → `L < 1` | `(6, 0)` |
+| 5 | `(6, 0)` | P2 | `D>=0, L<1` | backtrack b1: `D >= 0` → `D < 0` | `(-1, 3)` |
+| 6 | `(-1, 3)` | P1 | `D < 0` | none left | — |
+
+Six iterations, six paths, **100% path coverage**.
+
+**At this limit the walk does not sample the bands — it enumerates them.**
+Iteration 1 negates `D <= 3` and the solver returns 4, which section 4c shows is
+the *entire* MINOR band. Iteration 2 negates `D <= 4` and returns 5, the entire
+MAJOR band. Every generated input is the tightest solution of its constraint,
+and at `L = 3` the tightest solution is the only solution.
+
+That is a property of small limits rather than of the technique, and it is why
+this walk is worth running despite having the same tree as US19's. US19 seeds at
+`L = 10`, where each band holds four or five values and the solver returns a
+boundary *within* a band; here the boundary **is** the band. The two walks
+exercise identical paths under opposite conditions, and between them they
+demonstrate that the band widths are a function of the limit and not of the
+code.
+
+**Iteration 5 keeps `D = 6` rather than resetting it.** Backtracking to b2
+negates only `L >= 1`; nothing requires `D` to change, so the solver leaves it
+where it was. A solver that minimised every variable would have returned
+`(0, 0)` and taken the same path — the choice is unconstrained, which is worth
+noting because it means the walk is not unique.
+
+### 6. Resulting test cases
+
+| File | Contents |
+|---|---|
+| `khm12/test/whitebox/branch_coverage/test_rule_nesting.py` | six branch outcomes, including the three in the inlined callee |
+| `khm12/test/whitebox/symbolic_execution/test_rule_nesting.py` | one test per path, all three findings, and the band count at each limit |
+| `khm12/test/whitebox/concolic_testing/test_rule_nesting.py` | the six iterations, plus the proof that the bands were enumerated rather than sampled |
+
+Finding 1 is additionally asserted **side by side with `rule_complexity`**,
+sweeping both functions over the same domain and checking they agree on every
+input. That is the test that would fail if the two rules ever diverged.
+
+### 7. Coverage
+
+| Measure | Value |
+|---|---|
+| Paths in the tree (inter-procedural) | 6 |
+| Paths tested | 6 |
+| Infeasible path combinations found | **3** — INFO unreachable at any limit; P5 infeasible at `L = 2`; P4 and P5 both infeasible at `L = 1` |
+| Branch outcomes | 6 reachable of 7 total; the 7th is proved unreachable |
+| Statement coverage of `rule_nesting` | 100% |

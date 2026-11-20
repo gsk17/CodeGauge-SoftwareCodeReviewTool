@@ -363,3 +363,257 @@ table a worse piece of evidence, not a better one.
 | Infeasible paths | 0 |
 | Branch outcomes | 7 of 7 |
 | Statement coverage of `count_leading_spaces` | 100% |
+
+---
+
+## US07 — `core.scanner.is_function_header(line)`
+
+Like US02 this function branches on string properties rather than on integers,
+but unlike US02 it has **no loop** — so the tree is finite and complete, and no
+bounding is needed. That makes it the cleanest demonstration in the project of
+symbolic execution over a non-numeric domain.
+
+### 1. The function, with branches labelled
+
+```python
+def is_function_header(line):
+    stripped = line.strip()
+    if stripped.startswith("#"):              # b1
+        return False
+    if "(" not in stripped:                   # b2
+        return False
+    if stripped.startswith("def "):           # b3
+        return True
+    if stripped.startswith("async def "):     # b4
+        return True
+    return False                              # b5 (implicit else)
+```
+
+### 2. Symbolic inputs
+
+One symbolic string `S`, with `T = S.strip()`.
+
+**The function can observe only four properties of `T`**, so those are the only
+atoms any path condition can contain:
+
+| Atom | Meaning |
+|---|---|
+| `h` | `T` starts with `"#"` |
+| `p` | `T` contains `"("` |
+| `d` | `T` starts with `"def "` |
+| `a` | `T` starts with `"async def "` |
+
+Everything else about the string — its length, its remaining characters, the
+contents of the parameter list, whether it is valid Python at all — is invisible
+to the function and therefore absent from every path condition.
+
+**That reduction is what makes the analysis finite over an infinite input
+domain.** The input space is all strings; the space the function can
+*distinguish* is at most `2⁴ = 16` combinations of four booleans, of which
+several are unsatisfiable. This is the same technique as the three-class
+character reduction in US02, applied to a whole line rather than to one
+character.
+
+### 3. Symbolic execution tree
+
+```
+                      PC: true
+                      [b1] h ?
+                     /         \
+               true /           \ false
+                   /             \
+            P1: False        PC: not h
+            PC: h            [b2] not p ?
+                            /            \
+                      true /              \ false
+                          /                \
+                   P2: False          PC: not h and p
+                   PC: not h, not p   [b3] d ?
+                                     /        \
+                               true /          \ false
+                                   /            \
+                            P3: True       [b4] a ?
+                                           /       \
+                                     true /         \ false
+                                         /           \
+                                  P4: True       P5: False
+```
+
+Five leaves, five paths.
+
+### 4. Path conditions and solved witnesses
+
+| Path | Path condition | Witness | Returns |
+|---|---|---|---|
+| P1 | `h` | `"# def commented_out():"` | `False` |
+| P2 | `not h and not p` | `"def no_parens:"` | `False` |
+| P3 | `not h and p and d` | `"def withdraw(self, amount):"` | `True` |
+| P4 | `not h and p and not d and a` | `"async def fetch(url):"` | `True` |
+| P5 | `not h and p and not d and not a` | `"total = compute(x, y)"` | `False` |
+
+**The P1 witness deliberately carries a parenthesis and a keyword.** It would
+satisfy P3 were b1 not evaluated first, which is what makes it a witness for
+P1 rather than an arbitrary comment. A witness like `"# hello"` would satisfy
+the path condition but demonstrate nothing about the ordering.
+
+**The P2 witness is a definition.** `"def no_parens:"` has the keyword and
+fails only on the parameter list, so it isolates b2 from b3.
+
+### 4a. Finding 1 — the result is a conjunction, so guard order cannot change it
+
+Collecting the two `True` paths:
+
+```
+result  =  not h  and  p  and  (d or a)
+```
+
+A conjunction of three independent conditions. Conjunction is commutative, so
+**reordering b1 to b4 can change which path an input takes, but never what the
+function returns.**
+
+The three `False` leaves partition the complement exactly — no overlap, no gap:
+
+| | Path condition |
+|---|---|
+| P1 | `h` |
+| P2 | `not h and not p` |
+| P5 | `not h and p and not d and not a` |
+
+Every string satisfies **exactly one** of the five path conditions. The function
+is total; there is no input for which it fails to return.
+
+This is worth deriving rather than assuming, because the guards *look*
+order-sensitive. A reader may suspect that testing for `"#"` after the keyword
+tests would change the answer for `"# def f():"`. It would change the path — P5
+instead of P1 — and not the result. The analysis settles that, and the
+black-box tests could not.
+
+### 4b. Finding 2 — `startswith` is load-bearing and `in` would be wrong
+
+`"async def "` **contains** `"def "`, but not at position 0:
+
+```
+"async def fetch(url):"      startswith("def ") -> False      "def " in T -> True
+```
+
+With `in` instead of `startswith`, b3 would capture every coroutine definition
+and b4 would become dead code. That much is harmless, since both return `True`.
+But `in` also accepts strings where `"def "` appears anywhere at all:
+
+```
+"x = my def (y)"             startswith("def ") -> False      "def " in T -> True
+```
+
+which is not a definition and must return `False`. So the two tests are **not
+interchangeable**, and the difference is demonstrable rather than hypothetical.
+
+**P4 existing as a separate path from P3 is the structural evidence that
+`startswith` was used.** Under `in`, P4 would be unreachable.
+
+### 4c. Finding 3 — `d` and `a` are mutually exclusive, so the tree has five leaves and not six
+
+No string starts with both `"def "` and `"async def "`. The combination
+`d and a` is unsatisfiable, so the tree has no leaf for it.
+
+The missing sixth leaf is an **infeasible path**, not an untested one, and it
+follows from the atoms being logically linked: `a` implies `not d`. Section 5
+shows that linkage has a consequence for the concolic walk.
+
+### 4d. Finding 4 — the empty string needs no special case
+
+`"(" not in ""` is true, so the empty string takes **P2** and returns `False`.
+
+There is no length check anywhere in the function, and none is needed: the guard
+that rejects `"def no_parens:"` also rejects `""`, for the same reason. A
+derived property rather than a deliberate design decision, and worth recording
+so that a later refactor does not add a redundant emptiness guard believing one
+to be missing.
+
+### 5. Concolic execution
+
+Seeded with `"def withdraw(self, amount):"` — a real method header from the
+design notes, chosen over a minimal input so the first run takes the path the
+function exists to recognise.
+
+| It. | Input | Path | Collected PC | Negated |
+|---|---|---|---|---|
+| 1 | `"def withdraw(self, amount):"` | P3 → True | `not h, p, d` | `d` |
+| 2 | `"async def withdraw(self):"` | P4 → True | `not h, p, !d, a` | `a` |
+| 3 | `"total = withdraw(self)"` | P5 → False | `not h, p, !d, !a` | `p` |
+| 4 | `"total = withdraw"` | P2 → False | `not h, !p` | `h` |
+| 5 | `"# total = withdraw"` | P1 → False | `h` | none left |
+
+Five iterations, five paths, **100% path coverage** — and unusually, **with no
+backtracking at all.**
+
+That is a consequence of the tree being a **chain** rather than a bush: every
+decision has exactly one child that continues, so negating the deepest branch
+always lands on a fresh leaf and the stack never has to be unwound. Compare the
+US29 walk, which backtracks four times, or US12's, which backtracks twice and
+then needs two manual shrink steps because loop length is not a branch
+condition.
+
+### 5a. Solving a string constraint is a search, not arithmetic
+
+This is the honest difficulty of the technique on string-handling code.
+
+Negating `T.startswith("def ")` yields "some string not beginning with those
+four characters, which still contains `(` and does not begin with `#`". That is
+not an equation. There is no solver that returns *the* answer; there is a space
+of answers, and something has to choose.
+
+What makes it tractable is the reduction from section 2: the function observes
+only four booleans, so the constraint is over four booleans rather than over
+characters. Choosing a representative string for a given combination is then
+mechanical.
+
+**The strings in this walk were therefore constructed, not computed**, and each
+is the minimal edit to its predecessor that flips the negated atom:
+
+| Step | Edit | Effect |
+|---|---|---|
+| 1 → 2 | prefix `"async "` | `d` false, `a` true |
+| 2 → 3 | replace the keyword | neither `d` nor `a` |
+| 3 → 4 | drop the parentheses | `p` false |
+| 4 → 5 | prefix `"# "` | `h` true |
+
+### 5b. One step flips two atoms, and that is Finding 3 seen from the walk
+
+Step 1 → 2 changes **two** atoms, not one. It cannot do otherwise: `a` implies
+`not d`, so there is no input that flips `d` alone and still reaches P4.
+
+That is section 4c's unsatisfiable combination observed dynamically, and it is a
+real limit on what a negation step can promise. **A solver can be asked to flip
+one branch condition, but where two conditions are logically linked, its answer
+flips both.** Every other step in this walk flips exactly one atom, and the test
+file asserts both halves of that — the exception at step 1 → 2 and the rule
+everywhere else.
+
+The practical consequence: a walk that assumed one-atom-per-step would conclude
+that a path had been skipped. It had not. The path that appears to be missing
+does not exist.
+
+### 6. Resulting test cases
+
+| File | Contents |
+|---|---|
+| `gsk17/test/whitebox/branch_coverage/test_is_function_header.py` | the five leaves, plus the empty line reaching b2 and the break on an indented comment |
+| `gsk17/test/whitebox/symbolic_execution/test_is_function_header.py` | one test per path, all four findings, and the partition checked by counting satisfied conditions |
+| `gsk17/test/whitebox/concolic_testing/test_is_function_header.py` | the five iterations, the atom-flip property, and the absence of backtracking |
+
+Finding 1 is asserted by evaluating the derived expression
+`(not h) and p and (d or a)` independently and comparing it against the function
+across twenty strings chosen to make each atom true and false in combination —
+a derivation checked against the code, rather than the code checked against
+itself.
+
+### 7. Coverage
+
+| Measure | Value |
+|---|---|
+| Paths in the tree | 5 |
+| Paths tested | 5 |
+| Infeasible paths found | **1** — `d and a` unsatisfiable |
+| Concolic backtracking steps required | **0** |
+| Branch outcomes | 9 of 9 |
+| Statement coverage of `is_function_header` | 100% |

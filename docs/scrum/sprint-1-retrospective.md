@@ -1,13 +1,18 @@
 # Sprint 1 Retrospective
 
-**Meeting date:** 22 November 2026
+**Meeting date:** 24 November 2026 (planned for the 22nd; see the note below)
 **Attending:** Gunjan, Kasam, Saaket, Harshita
 
-> **Prepared on 19 November, before the meeting.** Sections 1 to 3 assemble what
-> the sprint's own records show, with the specific instance behind each point, so
-> the meeting can argue about what it means rather than about what happened.
-> Sections 4 to 6 are the meeting's own output and are completed on the day —
-> **two decisions are queued for it and neither has been taken.**
+> **Sections 1 to 3 were prepared on 19 November, before the meeting**, so that
+> the meeting could argue about what the records mean rather than about what
+> happened. **Sections 4 to 6 were completed at the meeting itself.**
+>
+> **The meeting was held on 24 November, not on the 22nd as planned.** The
+> sprint ended on schedule — all 56 points merged on Friday 20 November — but
+> the review and retrospective slipped over the weekend and were held on the
+> Tuesday. The cost is two days of Sprint 2 begun without the retrospective's
+> action in place, and it is recorded here rather than back-dated because the
+> commit history shows it plainly.
 
 The retrospective inspects the **process**, not the product — how the team
 worked, and what one change it will make next sprint. Keep it honest: a
@@ -231,77 +236,126 @@ random tests, sampling 0..20, would hit roughly once in twenty-one lists.
 
 ## 4. Action for Sprint 2
 
-One change, owned by a named member, checked at the next retrospective. More
-than two actions is a wish list, not a commitment.
+One change, owned by a named member, checked at the next retrospective.
 
 | Action | Owner | How we will know it worked |
 |---|---|---|
-| `<decide at the meeting>` | | |
+| **At Sprint 2 planning, name for each story the merged function it most resembles, and let that inform the estimate.** Points are currently agreed per story in isolation; section 3.2 shows reuse is the dominant cost driver and that the point values do not capture it. | **Gunjan** (runs planning) | At the Sprint 2 retrospective, compare the hours-per-point *spread within each point value* against Sprint 1's. Sprint 1's three-point stories ranged 2.5 to 5.0 hours — a factor of two. If naming the precedent narrows that spread, the action worked. |
 
-**Candidates, in the order the evidence supports them:**
+**Why this one and not the other two candidates.** Sending collaborator invites
+before day 1, and making every Definition of Done line checkable by a command,
+are both worth doing and both already done — the invites are no longer an issue
+and the DoD was amended on 12 November. Neither is a change to how the team
+works from here. The estimation action is the only candidate that responds to a
+measured finding rather than to an operational slip, and it is the only one that
+can be checked with a number at the next retrospective.
 
-- **Estimate the next sprint's stories against what has already merged**, not
-  in isolation. Section 3.2 shows reuse is the dominant cost factor and that
-  points do not capture it. A concrete form: at Sprint 2 planning, name for each
-  story the merged function it most resembles, and let that inform the estimate.
-  Checkable at the next retrospective by comparing the h/point spread within each
-  point value against Sprint 1's.
-- **Send collaborator invites and confirm acceptance before day 1.** Cheap, and
-  it cost three member-days this sprint.
-- **Make every Definition of Done line checkable by a command.** The rework day
-  happened because "black-box test cases" could be satisfied by one package when
-  two were required. A DoD line that names a path can be verified; one that
-  names a concept cannot.
+## 5. Decisions taken at this meeting
 
-Pick **one**. The first is the only one that addresses a measured finding rather
-than an operational slip, which is the argument for it.
+### 5.1 The EVM baseline — **held at 392 hours, not re-cut**
 
-## 5. Decisions required at this meeting
+CPI is 1.70 and the 2 h/point rate is wrong by roughly 70%. The baseline is
+**deliberately not changed.**
 
-**Neither of these has been taken.** Both need to be recorded here with a
-rationale, whichever way they go.
-
-### 5.1 The EVM baseline
-
-CPI is 1.70 and the 2 h/point rate is wrong by 70%. Two options:
-
-| | Re-baseline to ~1.2 h/point | Hold the baseline at 392 h |
+| | Re-baseline to ~1.2 h/point | **Hold the baseline** |
 |---|---|---|
-| BAC | 235 h | 392 h |
-| CPI | ~1.03 | 1.70 |
-| Comparability across sprints | **lost** — Sprint 1 measured against one baseline, Sprint 2 against another | kept |
-| Documents to change | `evm.md`, `time-log.md` budget column (36 rows plus 3 totals), README, `planning-poker.md` | none |
-| What EAC says | 228 h | **231 h — already the corrected forecast** |
+| BAC | 235 h | **392 h** |
+| CPI | ~1.03 | **1.70** |
+| Comparability across sprints | lost | **kept** |
+| Documents to edit | 4 files, ~60 figures | **none** |
+| What the forecast says | 228 h | **EAC 231 h** |
 
-**Recommendation: hold the baseline.** A baseline is frozen deliberately, and
-`EAC = BAC / CPI` already produces 231 hours without changing anything —
-the correction is what the forecast formula is *for*. Adopt 1.2 h/point for
-**forward planning of Sprints 2 and 3 only**, and record that the underlying
-cause is reuse rather than a flat rate, per section 3.2.
+Three reasons, recorded because the decision looks like inaction and is not:
 
-A CPI of 1.70 with this explanation is also worth more than a CPI of 1.03 with
-none.
+1. **A baseline is frozen by definition.** Re-cutting it mid-project means
+   Sprint 1 is measured against one baseline and Sprint 2 against another, and
+   the variance between sprints — the thing being measured — stops meaning
+   anything. `evm.md` section 3 already states the baseline is not re-baselined.
+2. **`EAC = BAC / CPI` already applies the correction**, giving 231 hours
+   without a figure being edited. That is what the forecast formula is for.
+3. **A CPI of 1.70 with an explanation is worth more than a CPI of 1.03 with
+   none.** A baseline quietly adjusted until the index reads 1.00 is the absence
+   of a decision rather than the presence of one.
 
-### 5.2 The validator defect
+**Adopted for forward planning only:** 1.2 hours per story point, for Sprints 2
+and 3. It sits between the observed 1.18 and the independent forward estimate's
+1.24. The underlying cause is reuse, per section 3.2, so the rate will still
+mis-estimate individual stories even where it gets a sprint total close.
 
-`Thresholds.validate` permits a limit of 1. Options:
+### 5.2 `Thresholds.validate` permits a limit of 1 — **tighten it**
 
-- **Tighten to reject values below 2.** One character. Breaks nothing — no
-  current test asserts that 1 is valid — but `tests/test_model.py` should gain a
-  case asserting it is now rejected, and the reason must be in the commit
-  message, not just the diff.
-- **Permit 1 and warn at the menu.** Keeps the configuration available for
-  anyone who wants it, costs a message the CLI does not yet exist to display.
+**Decision: reject values below 2. Owner Saaket. Sprint 2.**
 
-**Recommendation: tighten, in Sprint 2, owned by Saaket** — his analysis found
-it. `model/thresholds.py` belongs to no story, so the change needs an owner
-named here or it will not happen.
+The analysis chain is in section 3.6 and in the sprint review: at a limit of 1,
+MINOR and MAJOR are unsatisfiable, no rule can emit INFO, so every finding is
+CRITICAL — and the validator permits exactly that value.
+
+Why tighten rather than warn and allow:
+
+- There is **no CLI yet** to display a warning in. The menu is a Sprint 3 story,
+  so "permit and warn" means permit and say nothing until December.
+- Nothing is lost. A limit of 1 produces a tool that reports everything as
+  critical and nothing as minor. No user wants that configuration; it is
+  reachable only by accident.
+- It is a one-character change, and `tests/test_model.py` gains a case asserting
+  1 is now rejected. **The reason goes in the commit message, not only in the
+  diff** — the change is trivial and its justification is three pages of path
+  conditions, and a future reader finding `if value < 2` with no explanation
+  would reasonably assume it was arbitrary.
+
+Sprint 2 rather than immediately, because `model/thresholds.py` belongs to no
+user story and the change needs to be attributable. Saaket owns it because his
+US19 and US26 analyses produced the finding.
+
+**It does not become a user story.** It is a defect fix, logged here, and the
+points are not counted toward velocity.
+
+### 5.3 Capacity — **no stories moved; a trigger set instead**
+
+Section 3.5 shows the project needs about **231 hours against 192 available**,
+and that Sprint 3 as committed needs **11.4 hours per person per week** in the
+fortnight ending 20 December, against the 8.3 Sprint 1 actually took.
+
+Three options were considered: move COULD stories from Sprint 3 into the
+hardening week, rebalance Sprint 2 and Sprint 3 to roughly 70 points each, or
+accept the stretch and agree availability now.
+
+**Decision: change nothing yet, and set a measurable trigger.**
+
+> **At the Sprint 2 review on 6 December**, compare Sprint 2's actual hours
+> against **80**, which is 68 points at the adopted 1.2 h/point rate.
+>
+> - **At or under 80 hours** with all 63 points delivered: the team is
+>   sustaining roughly 10 hours per person per week, Sprint 3 stands as
+>   committed, and the capacity figure of 8 h/person/week in `cocomo.md` is
+>   revised upward to match observed reality.
+> - **Over 80 hours, or points carried over**: move the COULD-priority stories
+>   out of Sprint 3 into the hardening week (21–27 December), which currently
+>   holds no story commitments.
+
+Reasons for deferring rather than acting now:
+
+- **Rebalancing does not reduce the total.** Moving points between Sprints 2 and
+  3 flattens the profile but leaves 231 hours against 192. It would also re-cut
+  the Sprint 2 and Sprint 3 PV milestones, days after deciding in 5.1 to hold
+  the baseline.
+- **The 192-hour figure is an assumption, not a measurement.** It comes from "8
+  hours each per week" written in `cocomo.md` to explain why COCOMO
+  over-estimates. Sprint 1 ran at 8.3. Whether the team can sustain 10 is
+  unknown, and Sprint 2 is the experiment that answers it.
+- **Cutting scope on an untested assumption is the expensive mistake.** Removing
+  stories now and finding in December that capacity was there would have cost
+  marks for no reason.
+
+The risk accepted is that the decision point is 6 December, leaving two weeks to
+act. That is enough to move COULD stories out of Sprint 3 but not enough to
+restructure it, and that limit is recorded deliberately.
 
 ## 6. Previous sprint's action
 
 | Action from Sprint 0 | Did it work? | Evidence |
 |---|---|---|
-| No action was recorded at Sprint 0 | — | Sprint 0 produced the design, backlog and estimates; it held no retrospective, so there is nothing to check back against. **This is the first retrospective, and the action in section 4 is the first to be carried forward.** |
+| None was recorded | — | Sprint 0 produced the design, backlog and estimates; it held no retrospective, so there is nothing to check back against. **This is the first retrospective, and section 4's action is the first to be carried forward.** |
 
 ## 7. Definition of Done
 

@@ -630,3 +630,229 @@ and neither has been taken — the EVM baseline, and what to do about
 **Sprint status at end of day 9:** **0 points remaining.** Ideal was 5.6, so the
 sprint finished one working day ahead of its own burn line, having been 4.4
 points behind it a week earlier.
+
+---
+
+## 2026-11-22 (Sprint 1, day 10 — planned review day)
+
+**No meeting held.** Sprint 1 itself finished on schedule — all twelve stories
+merged on Friday 20 November and the sprint close was committed the same day,
+`722c822`. What slipped was the review and the retrospective, which were held on
+Tuesday 24 November instead.
+
+**Sprint 1 final position, unchanged from the 20th:** 12 of 12 stories, 56 of 56
+points, 0 remaining against an ideal of 0.0. Velocity 56, nothing carried over.
+
+*Written on 24 November. The gap is visible in the commit history between
+`722c822` on the 20th and the next commit on the 24th, so it is recorded rather
+than back-dated.*
+
+---
+
+## 2026-11-23 (Sprint 2, day 0 — sprint planning)
+
+**Sprint planning held. Nothing committed.**
+
+The session reviewed the Sprint 2 backlog and agreed it unchanged: 63 points
+across 12 stories, three per member, with the sprint goal as drafted. Because
+[sprint-2-backlog.md](sprint-2-backlog.md) was written at Sprint 0 and committed
+on 11 November in `32ff60c`, confirming it produced no edit and therefore no
+commit.
+
+**That is a gap in the evidence trail, and it is the process observation from
+today.** A meeting that changes nothing leaves no trace in the repository, so
+from the Sprint 3 planning session onward the team commits a short confirmation
+note at planning — even when the backlog is agreed unchanged — so that the
+session is evidenced rather than merely asserted. CMMI Project Planning expects
+the plan to be reviewed and agreed; a review with no artifact is hard to
+demonstrate.
+
+### The backlog schedules story work on the planning day, and it should not
+
+Four stories carry a start date of 23 November in the backlog — US04 (Gunjan),
+US14 (Kasam), US22 (Saaket), US31 (Harshita). None of them started.
+
+That is a defect in the plan rather than a slip by the team. **Sprint 1 did not
+work that way**: its backlog starts US01 on 10 November, day 1, and the burndown
+records Monday 9 November as "sprint planning" with no story work at all. No
+sprint in this project has begun story work on its planning day, and Sprint 2's
+dates assume it will.
+
+The dates were drafted at Sprint 0, two weeks before the sprint, and the
+off-by-one was not noticed until the stand-up on 24 November.
+
+**The backlog dates are deliberately not edited.** They are the baseline, and
+re-cutting them to match what happened would erase the variance — the same
+argument applied to the EVM baseline at yesterday's retrospective. Sprint 2
+therefore runs one working day later than the backlog states throughout, and
+that is recorded here and in a note added to the backlog itself.
+
+### What it costs
+
+Each member has **exactly one spare working day** across Sprint 2, and it sits
+*inside* their third story rather than between stories:
+
+| Member | Stories and planned days | Spare |
+|---|---|---|
+| Gunjan | US04 3 days, US03 3, US08 4 | 1 |
+| Kasam | US14 2, US13 3, US17 5 | 1 |
+| Saaket | US22 2, US21 4, US23 4 | 2 |
+| Harshita | US31 3, US33 3, US34 4 | 1 |
+
+Three commits per story over nine working days is nine commits in nine days.
+**Starting on day 1 consumes the whole buffer.** The sprint still fits — the
+last merges land on Friday 4 December as planned — but a second lost day pushes
+a story past the sprint boundary, costing its points from velocity under the
+0/100 rule.
+
+Saturday 5 December is the only remaining slack in the sprint.
+
+*Written on 24 November, the day after the session.*
+
+---
+
+## 2026-11-24 (Sprint 2, day 1)
+
+### Sprint 1 review and retrospective, held today
+
+Two days later than planned. Both documents had been prepared on 19 November, so
+the meetings inspected evidence rather than gathering it. **Three decisions were
+taken, and all three are recorded in
+[sprint-1-retrospective.md](sprint-1-retrospective.md) section 5.**
+
+**1. The EVM baseline is held at 392 hours, not re-cut.** CPI is 1.70 and the
+2 h/point rate is wrong by roughly 70%, but a baseline is frozen by definition —
+re-cutting it mid-project means Sprint 1 is measured against one baseline and
+Sprint 2 against another, and the variance between sprints stops meaning
+anything. `EAC = BAC / CPI` already gives 231 hours without a figure being
+edited. **1.2 h/point is adopted for forward planning of Sprints 2 and 3 only.**
+
+**2. `Thresholds.validate` will be tightened to reject limits below 2.** Owner
+Saaket, during Sprint 2. There is no CLI yet to put a warning in, nothing is
+lost by forbidding a configuration no user wants, and the justification goes in
+the commit message rather than only in a one-character diff. It is a defect fix,
+not a user story, and its points do not count toward velocity.
+
+**3. Capacity: no stories moved, a measurable trigger set instead.** The project
+needs about 231 hours against 192 assumed available, and Sprint 3 as committed
+needs 11.4 hours per person per week in the fortnight before Christmas.
+
+> At the Sprint 2 review on 6 December, Sprint 2's actual hours are compared
+> against **80**. At or under, with all 63 points delivered, Sprint 3 stands and
+> the 8 h/person/week assumption in `cocomo.md` is revised upward. Over 80, or
+> with points carried over, the COULD-priority stories come out of Sprint 3 into
+> the hardening week.
+
+Rebalancing was rejected because moving points between Sprints 2 and 3 flattens
+the profile but leaves the total unchanged, and would re-cut the PV milestones
+days after deciding to hold the baseline. Cutting scope was rejected because the
+192-hour figure is an assumption written to explain COCOMO's over-estimate, not
+a measurement — Sprint 1 ran at 8.3 hours per person per week, and whether 10 is
+sustainable is exactly what Sprint 2 will answer.
+
+**The Sprint 2 action**, owned by Gunjan: at planning, name for each story the
+merged function it most resembles and let that inform the estimate. Checked at
+the Sprint 2 retrospective by comparing the hours-per-point spread *within* each
+point value against Sprint 1's — where the three-point stories ranged 2.5 to 5.0
+hours, a factor of two.
+
+`v0.1.0` tagged on `722c822`, and the board screenshot taken with all twelve
+stories in Done and the four poker point corrections applied.
+
+### Sprint 2 begins — 63 points, 12 stories
+
+> **The rule set is complete and a review can be written to and read back from
+> the history file.**
+
+| Member | Stories | Points |
+|---|---|---|
+| Gunjan | US03, US04, US08 | 11 |
+| Kasam | US13, US14, US17 | 18 |
+| Saaket | US21, US22, US23 | 13 |
+| Harshita | US31, US33, US34 | 21 |
+
+**Gunjan**
+- Since Friday: US07 merged, Sprint 1 complete
+- Today: US04 `comment_ratio_percent` — failing tests written in both black-box
+  packages and observed failing. One day later than the backlog date of 23 Nov
+- Impediments: none
+
+**Kasam**
+- Since Friday: US20 merged, Sprint 1 complete
+- Today: US14 `parameter_count_rating` — failing tests in both black-box
+  packages, observed failing
+- Impediments: none
+
+**Saaket**
+- Since Friday: the two derived limitations committed
+- Today: US22 `rule_params` — failing tests in both black-box packages, observed
+  failing. The third rule in `core/rules.py` and the third to use the shape US19
+  established
+- Impediments: none. The `Thresholds.validate` fix agreed at today's
+  retrospective is his, and is scheduled after US22 merges rather than
+  interleaved with it, so the defect fix has its own commit and its own
+  justification
+
+**Harshita**
+- Since Friday: US29 merged, Sprint 1 complete
+- Today: US31 `compare_scores` — failing tests in both black-box packages,
+  observed failing
+- Impediments: none. **Harshita carries 21 of Sprint 2's 63 points**, the
+  heaviest single-member load of the project so far, against Gunjan's 11. Flagged
+  at planning; no reallocation was made because the stories are within her slice
+  and moving one would cross a member boundary that the individual marks depend
+  on. Watched rather than acted on
+
+### Note on the estimation action, applied today
+
+The Sprint 2 action was applied at this stand-up rather than waiting for the
+next planning session. For each story started today, the merged function it most
+resembles:
+
+| Story | Most resembles | Expectation |
+|---|---|---|
+| US04 `comment_ratio_percent` | US02 `count_leading_spaces` — arithmetic over a counted quantity | cheaper than US02's 5.0 h, since the loop pattern is settled |
+| US14 `parameter_count_rating` | US30 `grade_band` — a banding function with thresholds | close to US30's 3.5 h |
+| US22 `rule_params` | US20 `rule_nesting` — the same rule shape again | at or below US20's 2.5 h, the cheapest story so far |
+| US31 `compare_scores` | nothing merged yet — first story to classify a *change* rather than a value | expect high, like US29's 9.5 h |
+
+Recorded now so that the comparison at the Sprint 2 retrospective is against a
+prediction rather than a memory.
+
+### The Sprint 2 commit schedule, agreed at this stand-up
+
+Nine commits per member over nine working days, in three three-day cycles, with
+every member merging on the same day:
+
+| Day | Date | Gunjan | Kasam | Saaket | Harshita |
+|---|---|---|---|---|---|
+| 1 | Tue 24 Nov | US04 c1 | US14 c1 | US22 c1 | US31 c1 |
+| 2 | Wed 25 Nov | US04 c2 | US14 c2 | US22 c2 | US31 c2 |
+| 3 | Thu 26 Nov | US04 c3 → merge | US14 c3 → merge | US22 c3 → merge | US31 c3 → merge |
+| 4 | Fri 27 Nov | US03 c1 | US13 c1 | US21 c1 · **validate fix** | US33 c1 |
+| 5 | Mon 30 Nov | US03 c2 | US13 c2 | US21 c2 | US33 c2 |
+| 6 | Tue 1 Dec | US03 c3 → merge | US13 c3 → merge | US21 c3 → merge | US33 c3 → merge |
+| 7 | Wed 2 Dec | US08 c1 | US17 c1 | US23 c1 | US34 c1 |
+| 8 | Thu 3 Dec | US08 c2 | US17 c2 | US23 c2 | US34 c2 |
+| 9 | Fri 4 Dec | US08 c3 → merge | US17 c3 → merge | US23 c3 → merge | US34 c3 → merge |
+| — | Sat 5 Dec | *the only remaining buffer* | | | |
+| 10 | Sun 6 Dec | sprint review and retrospective, tag `v0.2.0` | | | |
+
+Expected remaining points: **44** after day 3, **26** after day 6, **0** after
+day 9. Flat between merges, because the 0/100 rule pays nothing until a story
+closes.
+
+The uniform three-day cycle also fixes a second problem in the backlog dates:
+US14 and US22 were each allocated **two** working days for three commits, which
+would have forced two commits into one day regardless of when the sprint
+started.
+
+Saaket carries two commits on Friday 27 November — US21 c1 and the
+`Thresholds.validate` fix agreed at yesterday's retrospective. The fix is
+scheduled after US22 merges so that it gets its own commit and its own
+justification in the message rather than being folded into story work.
+
+**Sprint 2 status at end of day 1:** 0 of 12 stories done, 0 of 63 points. 63
+remaining against an ideal of 56.7 — 6.3 points behind, which is the arithmetic
+consequence of the ideal line assuming work closes on day 1 when the smallest
+story is worth 3 points and needs three commits to close.

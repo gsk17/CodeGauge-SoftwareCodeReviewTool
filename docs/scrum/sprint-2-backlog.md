@@ -3,6 +3,21 @@
 **Sprint:** Mon 23 Nov 2026 to Sun 6 Dec 2026 (2 weeks, 10 working days)
 **Committed:** 63 story points across 12 stories
 
+> **The per-story start dates below are one day early and are deliberately not
+> corrected.** They were drafted at Sprint 0 on 11 November and schedule four
+> stories to begin on Monday 23 November, the planning day. No sprint in this
+> project has begun story work on its planning day — Sprint 1's backlog starts
+> US01 on day 1, and its burndown records day 0 as planning only.
+>
+> **Sprint 2 therefore runs one working day later than this table states
+> throughout**, with stories starting Tuesday 24 November and the last merges
+> landing Friday 4 December as planned. The dates are left as drafted so that
+> the variance stays visible, which is the same reasoning applied to the EVM
+> baseline at the Sprint 1 retrospective.
+>
+> The agreed commit schedule is in
+> [daily-scrum-log.md](daily-scrum-log.md) under 24 November.
+
 ## Sprint goal
 
 The rule set is complete and a review can be written to and read back from the history file.

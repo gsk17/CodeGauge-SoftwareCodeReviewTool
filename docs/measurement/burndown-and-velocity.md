@@ -45,7 +45,7 @@ burn is 5.6 points per day.
 | 7 | Wed 18 Nov | 16.8 | 14 | — | US07, US20 and US29 all started; the last three Sprint 1 stories, worth exactly the 14 that remain |
 | 8 | Thu 19 Nov | 11.2 | 14 | — | US07, US20 and US29 all implemented; none merged, so the 0/100 rule earns them nothing |
 | 9 | Fri 20 Nov | 5.6 | **0** | US07 US20 US29 | all three merged; **sprint complete, 56 of 56 points**, one working day ahead of the burn line |
-| 10 | Sun 22 Nov | 0.0 | _ | _ | sprint review and retrospective |
+| 10 | Sun 22 Nov | 0.0 | **0** | — | sprint already closed on day 9; the review and retrospective slipped to 24 Nov |
 
 ## 3. Sprint 2 — 23 November to 6 December 2026, 63 points
 
@@ -53,8 +53,8 @@ Ideal burn 6.3 points per day.
 
 | Day | Date | Ideal remaining | Actual remaining | Closed that day | Note |
 |---|---|---|---|---|---|
-| 0 | Mon 23 Nov | 63.0 | 63 | — | sprint planning |
-| 1 | Tue 24 Nov | 56.7 | _ | _ | |
+| 0 | Mon 23 Nov | 63.0 | 63 | — | sprint planning; backlog confirmed unchanged from Sprint 0, so nothing committed |
+| 1 | Tue 24 Nov | 56.7 | 63 | — | US04, US14, US22, US31 started on day 1, as Sprint 1 did; the backlog's 23 Nov start dates assume work on the planning day. Sprint 1 review and retrospective held today |
 | 2 | Wed 25 Nov | 50.4 | _ | _ | |
 | 3 | Thu 26 Nov | 44.1 | _ | _ | |
 | 4 | Fri 27 Nov | 37.8 | _ | _ | |

@@ -479,3 +479,296 @@ that **all** of them have `critical == 3`.
 | Narrowed specification found | **1** — the cap fires only at `critical == 3` |
 | Branch outcomes | 8 of 8 reachable |
 | Statement coverage of `score_from_issues` | 100% |
+
+---
+
+## US31 — `core.history.compare_scores(before, after)`
+
+The first function in the project with a **compound decision**, so the first
+where branch coverage, condition coverage and MC/DC are three different numbers
+rather than three names for the same seven tests.
+
+### 1. The function, with branches labelled
+
+```python
+def compare_scores(before, after):
+    if before < 0 or before > 100:          # b1  (two conditions)
+        raise ValueError(...)
+    if after < 0 or after > 100:            # b2  (two conditions)
+        raise ValueError(...)
+    difference = after - before
+    if difference == 0:                     # b3
+        return UNCHANGED
+    if difference >= LARGE_CHANGE:          # b4
+        return MUCH_IMPROVED
+    if difference > 0:                      # b5
+        return IMPROVED
+    if difference <= -LARGE_CHANGE:         # b6
+        return MUCH_REGRESSED
+    return REGRESSED                        # b7 (implicit else)
+```
+
+### 2. Symbolic inputs
+
+Two symbolic integers, `B` for `before` and `A` for `after`, with the derived
+term `D = A - B`. **Every decision after the two validations constrains `D`
+alone**, which is why the seven path conditions reduce to intervals on a single
+line.
+
+### 3. The execution tree
+
+| Path | Path condition | Witness | Returns |
+|---|---|---|---|
+| P1 | `B < 0 or B > 100` | `(-1, 200)` | ValueError, `before` |
+| P2 | `0 <= B <= 100`, `A < 0 or A > 100` | `(50, 101)` | ValueError, `after` |
+| P3 | valid, `D == 0` | `(72, 72)` | UNCHANGED |
+| P4 | valid, `D >= 10` | `(72, 85)` | MUCH_IMPROVED |
+| P5 | valid, `0 < D < 10` | `(72, 78)` | IMPROVED |
+| P6 | valid, `D <= -10` | `(72, 60)` | MUCH_REGRESSED |
+| P7 | valid, `-10 < D < 0` | `(72, 66)` | REGRESSED |
+
+Seven leaves. P1 and P2 each cover **two condition-paths**, since `or`
+short-circuits: the first operand true, or the first false and the second true.
+Counting those separately gives nine paths — see finding 6.
+
+### 4. Finding 1 — every path condition is satisfiable, which no other function in this member's set can say
+
+Seven leaves, seven feasible paths, **no infeasible combinations at all.** That
+is unusual here: US29's score cap produced a branch reachable at exactly one
+issue count, US22's inlined severity call has three unsatisfiable leaves out of
+seven, and US07's tree is missing a leaf because two string prefixes exclude
+each other.
+
+Full feasibility is a consequence of the bands being **nested and tested in
+order**. Each guard's condition is weaker than the last, so each negation leaves
+a non-empty remainder for the next. A version testing five disjoint conditions
+independently would be no more correct and would admit unsatisfiable
+combinations — which is to say the shape that makes finding 5 a hazard is the
+same shape that makes this finding hold.
+
+### 5. Finding 2 — the bands are wildly unequal, and "much" is the common case
+
+The valid domain is `0 <= B, A <= 100`, so `D` ranges over `[-100, 100]` — 201
+values:
+
+| Band | `D` range | Values |
+|---|---|---|
+| MUCH_REGRESSED | `[-100, -10]` | 91 |
+| REGRESSED | `[-9, -1]` | 9 |
+| UNCHANGED | `0` | 1 |
+| IMPROVED | `[1, 9]` | 9 |
+| MUCH_IMPROVED | `[10, 100]` | 91 |
+
+**182 of the 201 possible differences are "much" something.** Counting input
+pairs sharpens it, since extreme differences need extreme scores. Over all
+101 × 101 = 10,201 valid pairs:
+
+| Band | Pairs | Share |
+|---|---|---|
+| MUCH_IMPROVED | 4,186 | 41.0% |
+| IMPROVED | 864 | 8.5% |
+| UNCHANGED | 101 | 1.0% |
+| REGRESSED | 864 | 8.5% |
+| MUCH_REGRESSED | 4,186 | 41.0% |
+
+The five sum to 10,201, which is the check that the bands partition the domain
+exactly. So **82% of all possible score pairs are classified as a large
+change**, and the two bands named for the ordinary case cover 17% between them.
+
+`LARGE_CHANGE` is 10 on a 0–100 scale, which sounds conservative and is not. On
+the scale `score_from_issues` actually produces, a single CRITICAL issue costs
+15 points — so **the appearance or repair of one critical finding is always
+MUCH_IMPROVED or MUCH_REGRESSED.** The wording will overstate routine change in
+almost every real report, and the threshold rather than the implementation is
+what would have to move.
+
+### 6. Finding 3 — UNCHANGED is one value of `D` and 101 inputs
+
+P3's path condition is `D == 0` with the range checks, which in the original
+inputs is the **diagonal** `B == A`, 0 through 100 — 101 solutions.
+
+Worth separating from US04's finding 1, where the one-value path condition had
+exactly one solution in the inputs too. Here the derived variable collapses and
+the inputs do not, so the partition is a singleton in `D` and a 101-member set
+in `(B, A)`. A test of this leaf is exhaustive over the derived space and a
+sample of the input space — and only the second matters if the function is ever
+changed to look at `B` or `A` directly rather than only at their difference.
+
+### 7. Finding 4 — the antisymmetry is provable, not merely apparent
+
+Substituting `D -> -D` maps the five banding conditions onto each other exactly:
+
+```
+D == 0       ->  D == 0            P3 -> P3
+D >= 10      ->  D <= -10          P4 -> P6
+0 < D < 10   ->  -10 < D < 0       P5 -> P7
+```
+
+So `compare_scores(A, B)` always returns the mirror of `compare_scores(B, A)`,
+for every valid pair, with UNCHANGED as the fixed point. **The function is
+exactly antisymmetric.**
+
+That is the property the docstring is defending when it rejects the
+`abs(after - before)` implementation. With `abs()`, the magnitude is banded and
+the direction attached afterwards, and antisymmetry becomes a claim about two
+steps agreeing rather than a consequence of one. The claim would be true of a
+correct implementation and **could not be read off its path conditions**,
+because the sign would not appear in them. Carrying the sign through makes the
+symmetry structural: it *is* the substitution above.
+
+### 8. Finding 5 — the guard order is load-bearing here, where in US07 it was not
+
+The five banding conditions are **nested, not disjoint**:
+
+```
+D >= 10    implies   D > 0
+D <= -10   implies   D < 0
+```
+
+b4's set is a subset of b5's, and b6's a subset of the implicit else's. The
+guards are disjoint only because of the order they are written in.
+Consequences, each provable by the same substitution:
+
+* **swap b4 and b5 and MUCH_IMPROVED becomes unreachable** — every gain, large
+  or small, would be taken by `D > 0` first;
+* **swap b6 and b7 and MUCH_REGRESSED becomes unreachable**;
+* **move b3 below b4 and nothing changes**, because `D == 0` is disjoint from
+  both large bands — though it must stay above b5 and b7 or UNCHANGED is lost.
+
+This is the direct opposite of US07's finding 1, where the guards formed a
+conjunction, conjunction is commutative, and reordering was proved to change the
+path taken but never the result. **The same analysis applied to the same-looking
+chain of guards gives the opposite answer**, and the difference is visible only
+in the path conditions: US07's atoms were independent string properties, these
+are nested intervals on one variable.
+
+Four of the five banding outcomes depend on the ordering. Nothing in the source
+says so, and **no test of a single band would fail if two were swapped** — the
+suite would fail, but on the band that had become unreachable, which is a
+confusing place to begin debugging.
+
+### 9. Finding 6 — branch coverage cannot distinguish the two ways to fail a validation
+
+b1 is `before < 0 or before > 100`, and `or` short-circuits. There are two
+condition-paths to P1:
+
+| | Condition-path | Second operand |
+|---|---|---|
+| P1a | `B < 0` | never evaluated |
+| P1b | `B >= 0 and B > 100` | evaluated |
+
+A suite reaching P1 only through 101 covers both branches of the decision and
+never evaluates `B < 0` to true. `coverage` reports 100% either way, because
+both forms execute the same line.
+
+| Criterion | What it demands of b1 | Tests |
+|---|---|---|
+| Branch coverage | the decision both ways | 2 |
+| Condition coverage | each operand both ways | 2, if chosen well |
+| MC/DC | each operand shown to decide alone | 3 |
+
+**Branch coverage of this function is 7 tests; honest coverage is 11.** The
+difference is entirely in the two validations and is invisible to the coverage
+tool. It is worth paying for because the operands enforce different ends of the
+scale: a transposition defect — `before > 0 or before < 100`, which rejects
+nothing at all — would be caught by condition coverage and missed by branch
+coverage of a suite that only ever tested one end.
+
+### 10. Finding 7 — the integer domain is load-bearing and nowhere enforced
+
+b5 is `difference > 0` where `difference >= 1` would be equivalent — over the
+integers. Over the reals they differ, and nothing here requires integer
+arguments; the range validation accepts any comparable numeric:
+
+| Call | `D` | Returns |
+|---|---|---|
+| `compare_scores(0, 0.5)` | 0.5 | IMPROVED |
+| `compare_scores(0, 9.5)` | 9.5 | IMPROVED |
+| `compare_scores(0.5, 0.5)` | 0.0 | UNCHANGED |
+
+So the gap between IMPROVED and MUCH_IMPROVED — closed over the integers, 9 then
+10 — is **open over the reals** and holds infinitely many values the band names
+still describe correctly.
+
+**Unreachable in the tool as it stands**, because `score_from_issues` returns an
+integer by construction and is the only producer of these scores. Recorded
+because it is a contract this function relies on and does not state: the
+docstring says "1 to 9 points" and "10 or more", which is true only of integer
+inputs.
+
+### 11. Concolic walk
+
+Seeded with `(72, 85)` — the quality score of `core/scanner.py` at the Sprint 1
+close and its score after US07 merged, so the first run is a real comparison
+between two real reviews.
+
+| It. | Input | Path | Collected PC | Negated | Next |
+|---|---|---|---|---|---|
+| 1 | `(72, 85)` | P4 | valid, `D!=0`, `D>=10` | `D>=10` | `(72, 78)` |
+| 2 | `(72, 78)` | P5 | valid, `D!=0`, `D<10`, `D>0` | `D>0` | `(72, 60)` |
+| 3 | `(72, 60)` | P6 | valid, `D!=0`, `D<0`, `D<=-10` | `D<=-10` | `(72, 66)` |
+| 4 | `(72, 66)` | P7 | valid, `D!=0`, `D<0`, `D>-10` | `D!=0` | `(72, 72)` |
+| 5 | `(72, 72)` | P3 | valid, `D==0` | `A` valid | `(72, 101)` |
+| 6 | `(72, 101)` | P2 | `B` valid, `A` invalid | `B` valid | `(-1, 101)` |
+| 7 | `(-1, 101)` | P1 | `B` invalid | — | — |
+
+**Seven iterations, seven leaves, three backtracks** — at iterations 5, 6 and 7,
+each unwinding to a shallower branch because the deeper ones are exhausted. The
+most backtracking of any walk in this member's set, because the four banding
+guards sit at the bottom of the tree and are consumed first, after which every
+remaining leaf is above them.
+
+**The derived variable hides a choice.** Every negation produced a constraint on
+`D`, which is not an input. Each witness had to be recovered by solving
+`A - B = d`, which has infinitely many solutions, and the walk resolved that by
+**holding `B` fixed at the seed's 72 and moving `A`**. Holding `A` fixed and
+moving `B` is equally valid — `(66, 85)` reaches P4 just as the seed does — and
+yields a different suite with the same coverage. Fixing `B` reads as one
+baseline compared against several later reviews, which is what the function is
+for. Compare US04, where one negation pinned the model exactly and no choice was
+available.
+
+### 12. The headline finding — complete path coverage, incomplete condition coverage, and the technique cannot close the gap
+
+Iteration 5 negates `not (A < 0 or A > 100)`, handing the solver
+
+```
+0 <= B <= 100  and  (A < 0 or A > 100)
+```
+
+which is a **disjunction**. A solver returns one model. It returned `A = 101`;
+`A = -1` is an equally good model and reaches the same leaf by the other
+operand. The walk has no reason to ask for the second, because the bookkeeping
+driving it is per *decision* — the decision has now been seen both ways, so
+there is nothing left to negate. The same happens at iteration 6 for `B`.
+
+So this walk achieves **100% path coverage while leaving two of the four
+validation operands never evaluated true**: `A < 0` and `B > 100` are not
+exercised by any of the seven cases. The transposition defect of finding 6 would
+survive a suite that was complete by the measure the walk optimises.
+
+**Two walks can be equally complete and disagree about which operands they
+covered.** A walk whose solver preferred the first disjunct would cover `A < 0`
+and `B < 0` and miss the other two. The coverage figure is reproducible and the
+condition coverage behind it is not, which makes the figure a poor summary of
+what the walk achieved.
+
+The four cases appended after the walk in
+`hcg22/test/whitebox/concolic_testing/` close the gap. They are not derived from
+any negation and could not be: they are a **second input for a path already
+covered**, which is exactly what a path-driven technique will never ask for.
+
+### 13. Coverage
+
+| Measure | Value |
+|---|---|
+| Paths in the tree | 7 |
+| Condition-paths in the tree | 9 |
+| Paths tested | 7 |
+| Condition-paths tested | 9 |
+| Infeasible paths found | **0** — the only function in this member's set with none |
+| Concolic backtracking steps required | **3** |
+| Branch outcomes | 12 of 12 |
+| Statement coverage of `compare_scores` | 100% |
+| Branch coverage tests vs honest tests | **7 vs 11** |
+| Condition-paths the concolic walk reached | **7 of 9** — the gap it cannot close |

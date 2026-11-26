@@ -55,8 +55,8 @@ Ideal burn 6.3 points per day.
 |---|---|---|---|---|---|
 | 0 | Mon 23 Nov | 63.0 | 63 | — | sprint planning; backlog confirmed unchanged from Sprint 0, so nothing committed |
 | 1 | Tue 24 Nov | 56.7 | 63 | — | US04, US14, US22, US31 started on day 1, as Sprint 1 did; the backlog's 23 Nov start dates assume work on the planning day. Sprint 1 review and retrospective held today |
-| 2 | Wed 25 Nov | 50.4 | _ | _ | |
-| 3 | Thu 26 Nov | 44.1 | _ | _ | |
+| 2 | Wed 25 Nov | 50.4 | 63 | 0 | all four implementations written; nothing closed, so the 0/100 rule pays nothing |
+| 3 | Thu 26 Nov | 44.1 | 44 | 19 | US04, US14, US22, US31 merged. **Level with the ideal line for the first time in any sprint** - the step is four stories closing together, not a change of pace |
 | 4 | Fri 27 Nov | 37.8 | _ | _ | |
 | 5 | Mon 30 Nov | 31.5 | _ | _ | |
 | 6 | Tue 1 Dec | 25.2 | _ | _ | |
@@ -101,10 +101,10 @@ must finish all nine of their stories:
 
 | Member | Sprint 1 | Sprint 2 | Sprint 3 | Total (target 48) |
 |---|---|---|---|---|
-| Gunjan (M1, scanner) | **9/9** | /11 | /26 | 9/46 |
-| Kasam (M2, complexity) | **13/13** | /18 | /24 | 13/55 |
-| Saaket (M3, rules) | **18/18** | /13 | /16 | 18/47 |
-| Harshita (M4, scoring) | **16/16** | /21 | /11 | 16/48 |
+| Gunjan (M1, scanner) | **9/9** | 3/11 | /26 | 12/46 |
+| Kasam (M2, complexity) | **13/13** | 5/18 | /24 | 18/55 |
+| Saaket (M3, rules) | **18/18** | 3/13 | /16 | 21/47 |
+| Harshita (M4, scoring) | **16/16** | 8/21 | /11 | 24/48 |
 
 ## 6. Plotting the charts for the report and the video
 

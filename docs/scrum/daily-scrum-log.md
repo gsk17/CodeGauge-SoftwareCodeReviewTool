@@ -856,3 +856,200 @@ justification in the message rather than being folded into story work.
 remaining against an ideal of 56.7 — 6.3 points behind, which is the arithmetic
 consequence of the ideal line assuming work closes on day 1 when the smallest
 story is worth 3 points and needs three commits to close.
+
+---
+
+## 2026-11-25 (Sprint 2, day 2)
+
+### Implementations written. No story closed, so the burndown does not move.
+
+Commit 2 of three for all four stories in flight: the failing tests from
+yesterday now pass.
+
+**Two of the four created a new module**, which is the first time two have
+landed on one day:
+
+| Member | Story | Module | New? |
+|---|---|---|---|
+| Gunjan | US04 `comment_ratio_percent` | `core/line_metrics.py` | **new** |
+| Kasam | US14 `parameter_count_rating` | `core/complexity.py` | appended |
+| Saaket | US22 `rule_params` | `core/rules.py` | appended |
+| Harshita | US31 `compare_scores` | `core/history.py` | **new** |
+
+`core/line_metrics.py` exists so that `core/scanner.py` stays the only module
+that reads characters; everything in it consumes the integers the scanner hands
+back, which is what keeps it analysable by hand.
+`core/history.py` takes scores rather than reports, so it never touches a file —
+reading and writing the history belongs to US33 and US34 later this sprint.
+
+**Sprint 2 status at end of day 2:** 0 of 12 stories done, 0 of 63 points. 63
+remaining against an ideal of 50.4 — 12.6 points behind, and the gap is the
+0/100 rule rather than a slip. Four stories are two thirds complete and worth
+nothing until they merge tomorrow.
+
+### Stand-up
+
+**Gunjan**
+- Since yesterday: US04 implementation. The empty-file case returns 0 rather
+  than raising `ZeroDivisionError`, and the percentage is floored rather than
+  rounded so that a reported figure never overstates the documentation present
+- Today: US04 commit 3 tomorrow — white-box, symbolic and concolic
+- Impediments: none
+
+**Kasam**
+- Since yesterday: US14 implementation. Three bands relative to the configured
+  limit rather than fixed numbers, so the rating means the same thing whatever
+  limit a project sets
+- Today: US14 commit 3 tomorrow
+- Impediments: none
+
+**Saaket**
+- Since yesterday: US22 implementation, the third rule in `core/rules.py` and
+  the third to use the shape US19 established. The docstring now states that
+  shape as a contract — validate, treat the limit as inclusive, return None
+  rather than an INFO issue, carry a code and decide nothing about severity —
+  so that a fourth rule has something to conform to
+- Today: US22 commit 3 tomorrow. The `Thresholds.validate` fix is scheduled
+  after US22 merges rather than interleaved with it, so it gets its own commit
+  and its own justification
+- Impediments: none
+
+**Harshita**
+- Since yesterday: US31 implementation. The difference carries its sign the
+  whole way through instead of banding `abs(after - before)` and attaching the
+  direction afterwards, so a gain and a loss of the same size take different
+  branches rather than the same branch with a label on it
+- Today: US31 commit 3 tomorrow
+- Impediments: none
+
+---
+
+## 2026-11-26 (Sprint 2, day 3)
+
+### Four stories merged. 19 points closed, the first points of Sprint 2.
+
+| Member | Story | Points | PR |
+|---|---|---|---|
+| Gunjan | US04 `comment_ratio_percent` | 3 | #49 |
+| Kasam | US14 `parameter_count_rating` | 5 | #50 |
+| Saaket | US22 `rule_params` | 3 | #51 |
+| Harshita | US31 `compare_scores` | 8 | #52 |
+
+**Sprint 2 status at end of day 3:** 4 of 12 stories done, 19 of 63 points. 44
+remaining against an ideal of 44.1 — **on the ideal line for the first time this
+sprint**, and the first time any sprint in this project has been level on the
+burndown. Sprint 1 ran behind the ideal from day 1 to day 9 and only met it at
+the close.
+
+That is a consequence of the three-day commit cycle agreed at Tuesday's
+stand-up rather than of working faster: four stories closing on the same day
+moves the actual line in one 19-point step, and the step happens to land where
+the ideal line is. It will diverge again tomorrow and meet the ideal again on
+day 6. **The flat-then-step shape is the 0/100 rule, not a reporting error**,
+and the burndown note records it so that the chart in the report does not need
+explaining in the video.
+
+The four stories added **128 white-box tests** between them across the three
+techniques, on top of the black-box cases committed on days 1 and 2. The full
+suite on main is now **725 tests, all passing**, with `core/` at 100% statement
+coverage - 199 statements across seven modules, none missed.
+
+### Two findings from today's symbolic work, and one of them changes tomorrow
+
+**1. The `Thresholds.validate` fix agreed at the retrospective rejects one
+limit too few.** Saaket's inter-procedural analysis of `rule_params` solved the
+severity band expressions for small limits:
+
+| limit | MINOR | MAJOR | CRITICAL | reachable severities |
+|---|---|---|---|---|
+| 1 | `{ }` | `{ }` | `{2, …}` | CRITICAL only |
+| 2 | `{3}` | `{ }` | `{4, …}` | MINOR, CRITICAL |
+| 3 | `{4}` | `{5}` | `{6, …}` | all three |
+
+The retrospective agreed on Tuesday to **reject limits below 2**. At a limit of
+2 the MAJOR band is still empty by construction, so the agreed fix leaves the
+defect in place for one configuration. **The smallest sound limit is 3.**
+
+> **Decision needed at tomorrow's stand-up, before the fix is written.** The
+> argument against simply changing 2 to 3 is that a limit of 2 is a legitimate
+> setting for a nesting depth — a project insisting on at most two levels of
+> indentation is strict, not misconfigured — and refusing it to keep a band
+> non-empty fixes a reporting artefact by rejecting a reasonable configuration.
+> The alternative is to change the banding arithmetic in `classify_severity`,
+> which touches every rule and every existing test and is not a Sprint 2 job.
+> Owner Saaket either way; the fix is still scheduled for tomorrow.
+
+Recorded as a finding rather than silently applied, because the retrospective
+took a decision on evidence that was incomplete and the correction belongs in
+the same log as the decision.
+
+**2. `parameter_count_rating` and `classify_severity` disagree at exactly twice
+the limit, for every limit.** Kasam's analysis substituted `P = 2L` into both
+and found the count is simultaneously `MANY` — the kindest over-limit rating —
+and `CRITICAL`. At the default limit of 4 that is an eight-parameter signature.
+The whole `MANY` band spans all three reachable severities.
+
+Neither function is wrong against its own documented contract; they are two
+independent gradings of one measurement, and **a report showing both would
+appear to contradict itself for one parameter count in every configuration.**
+
+Deferred to the Sprint 2 review on 6 December rather than acted on, because the
+cheap fix is not free: changing b4 to `param_count < 2 * limit` aligns the
+boundaries and shrinks the `MANY` band to `limit - 1` values, which empties it
+at a limit of 1 and recreates in `complexity.py` exactly the collapse that
+`severity.py` already has. The honest options are to drop the rating from the
+report or to accept the overlap and document it.
+
+### What the three techniques each contributed today
+
+Worth recording once while four examples are fresh, because the report needs
+the comparison and the stand-up is where the evidence is:
+
+| | Found today |
+|---|---|
+| Branch coverage | the leaf counts, and in US31 the first case where branch and condition coverage differ — 7 tests against an honest 11 |
+| Symbolic execution | **every finding above.** All four came from solving path conditions, none from running anything |
+| Concolic testing | the walks, and in each case an explicit statement of what path exploration structurally cannot reach |
+
+The concolic walks were unanimous on their own limitation. US04's findings all
+sit *inside* one arithmetic path; US14's and US22's all depend on the
+configured limit, and a different limit is a different band width rather than a
+different path; US31's walk reached 7 of 9 condition-paths and **cannot** reach
+the other two, because asking for them means asking for a second input to a
+path already covered. In all four cases the walk reported 100% path coverage.
+
+**That is the single clearest result of the sprint so far**, and it is the
+answer to the obvious question about why three techniques are applied to every
+function instead of one.
+
+### Stand-up
+
+**Gunjan**
+- Since yesterday: US04 commit 3 — branch coverage, symbolic and concolic for
+  `comment_ratio_percent`, plus the US04 section of the symbolic write-up.
+  Merged in #49
+- Today: US04 closed. US03 `depth_from_indent` starts tomorrow
+- Impediments: none
+
+**Kasam**
+- Since yesterday: US14 commit 3 and merge #50. The cross-module finding above
+- Today: US14 closed. US13 `nesting_penalty` starts tomorrow
+- Impediments: none
+
+**Saaket**
+- Since yesterday: US22 commit 3 and merge #51. The third rule of the shape, and
+  the first inter-procedural analysis to treat the shape as a contract — nine
+  infeasible leaves identified across the three rules, and INFO proved
+  unreachable through any rule rather than observed to be
+- Today: US22 closed. US21 `rule_length` starts tomorrow, **and the
+  `Thresholds.validate` fix**, pending the decision above
+- Impediments: the decision above blocks the exact constant, not the fix
+
+**Harshita**
+- Since yesterday: US31 commit 3 and merge #52. The project's first compound
+  decision, and with it the first place condition coverage is a different
+  number from branch coverage
+- Today: US31 closed — 8 points, the largest single story closed in the project
+  so far. US33 `serialise_report` starts tomorrow
+- Impediments: none. Still carries 21 of Sprint 2's 63 points; 13 remain after
+  today against Gunjan's 8, so the imbalance narrows rather than widens

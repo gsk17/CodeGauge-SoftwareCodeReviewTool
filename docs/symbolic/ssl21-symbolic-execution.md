@@ -392,3 +392,267 @@ because both are universal claims: Finding 1 sweeps `L` in 1..39 against `C` in
 | Infeasible path combinations found | **2** — INFO unreachable; MINOR and MAJOR unreachable at `L = 1` |
 | Branch outcomes | 6 reachable of 7 total; the 7th is proved unreachable |
 | Statement coverage of `rule_complexity` | 100% |
+
+---
+
+## US22 — `core.rules.rule_params(param_count, limit, line)`
+
+The third rule of the shape US19 established, and the first analysis in this
+project to treat that shape as a **contract** rather than a coincidence. The
+findings below are properties of the shape, so they hold for `rule_complexity`
+and `rule_nesting` too — and the third instance is what makes them worth
+proving once instead of observing three times.
+
+Analysed **inter-procedurally, by inlining** `classify_severity` into the
+fourth leaf.
+
+### 1. The functions, with branches labelled
+
+```python
+def rule_params(param_count, limit, line):
+    if param_count < 0:                     # b1
+        raise ValueError(...)
+    if limit < 1:                           # b2
+        raise ValueError(...)
+    if param_count <= limit:                # b3
+        return None
+    severity = classify_severity(param_count, limit)
+    return Issue(CODE_PARAMS, severity, line, message)     # b4 (implicit else)
+```
+
+```python
+def classify_severity(actual, limit):
+    if actual < 0:                          # s1
+        raise ValueError(...)
+    if limit < 1:                           # s2
+        raise ValueError(...)
+    if actual <= limit:                     # s3
+        return INFO
+    if actual <= limit + limit // 2:        # s4
+        return MINOR
+    if actual < 2 * limit:                  # s5
+        return MAJOR
+    return CRITICAL                         # s6 (implicit else)
+```
+
+### 2. Symbolic inputs
+
+Two symbolic integers, `P` for `param_count` and `L` for `limit`. **`line` is
+carried into the `Issue` untouched and is never branched on**, so it appears in
+no path condition and is not symbolic — see finding 5.
+
+### 3. The caller alone
+
+| Path | Path condition | Witness | Returns |
+|---|---|---|---|
+| C1 | `P < 0` | `(-1, 0)` | ValueError, `param_count` |
+| C2 | `P >= 0, L < 1` | `(3, 0)` | ValueError, `limit` |
+| C3 | `P >= 0, L >= 1, P <= L` | `(3, 4)` | `None` |
+| C4 | `P >= 0, L >= 1, P > L` | `(6, 4)` | `Issue(…)` |
+
+C4 is a leaf of this function, not of the program.
+
+### 4. Inlining the callee into C4
+
+Substituting `actual = P`, `limit = L` and conjoining C4's path condition:
+
+| Callee leaf | Condition | Conjoined with C4 | Satisfiable? |
+|---|---|---|---|
+| s1 | `P < 0` | `P >= 0 and P < 0` | **NO** |
+| s2 | `L < 1` | `L >= 1 and L < 1` | **NO** |
+| s3 | `P <= L` | `P > L and P <= L` | **NO** |
+| s4 | `L < P <= L + L//2` | — | yes, MINOR |
+| s5 | `L + L//2 < P < 2L` | — | yes, MAJOR |
+| s6 | `P >= 2L` | — | yes, CRITICAL |
+
+So the inlined tree has **seven syntactic leaves and six feasible paths**:
+
+| Path | Full path condition | Witness | Returns |
+|---|---|---|---|
+| P1 | `P < 0` | `(-1, 0)` | raises |
+| P2 | `P >= 0, L < 1` | `(3, 0)` | raises |
+| P3 | `P >= 0, L >= 1, P <= L` | `(3, 4)` | `None` |
+| P4 | `P > L, P <= L + L//2` | `(5, 4)` | MINOR |
+| P5 | `P > L + L//2, P < 2L` | `(7, 4)` | MAJOR |
+| P6 | `P >= 2L` | `(8, 4)` | CRITICAL |
+
+### 5. Finding 1 — the callee's own validation is dead at every rule call site
+
+Three of the callee's five leaves cannot be reached from any rule. The caller's
+b1, b2 and b3 establish precisely what the callee's first three decisions
+re-check.
+
+That is **not** an argument for deleting them. `classify_severity` is a public
+function, called directly by its own tests and potentially by future code; its
+validation is dead *relative to this caller*, not dead in the module. The useful
+conclusion is the opposite one: **the duplicated checks are the reason the
+inter-procedural analysis is this simple.** Because the callee re-asserts the
+caller's guarantees, the conjunction either collapses to the caller's prefix or
+becomes unsatisfiable, and the call introduces no new constraint on `P` or `L`
+at all.
+
+With three rules in the module that is **nine infeasible leaves project-wide**
+that no test of any rule can reach. `coverage` nevertheless reports
+`core/severity.py` at 100%, because US26's own tests reach those lines directly.
+Coverage is a statement about lines the suite executed, not about behaviour
+reachable through a given path, and these nine are the clearest example of the
+gap in this project.
+
+### 6. Finding 2 — no rule in this tool can emit INFO, and now it is a theorem
+
+The inlined condition for INFO is `P > L and P <= L`: unsatisfiable, trivially
+and for every `L`. The same substitution works for `rule_complexity` and
+`rule_nesting`, because all three guard with `measurement <= limit -> None`
+before calling. Therefore:
+
+> **For every `rule_*` function in `core.rules`, the INFO severity is
+> unreachable.** An `Issue` produced by this tool carries MINOR, MAJOR or
+> CRITICAL, never INFO.
+
+US19 observed it for one rule and US20 for a second; the third instance makes it
+a property of the shape, and the shape is now documented in the `rule_params`
+docstring as a contract any future rule must satisfy — which means any future
+rule inherits this consequence too.
+
+The cost is that a reader of `core/severity.py` alone would conclude four
+severities can appear in a report. INFO is defined, exported and listed in
+`RANK_ORDER`, which `combine_severities` reduces along. It is reachable only by
+calling `classify_severity` directly, which nothing in the production path does.
+A reviewer looking for the INFO findings in a report will not find any, and the
+absence is structural rather than a sign of clean code.
+
+### 7. Finding 3 — the bands collapse at small limits, and the agreed fix does not go far enough
+
+Band membership, read off the inlined path conditions:
+
+| Band | Membership | Size |
+|---|---|---|
+| MINOR | `{ L+1 .. L + L//2 }` | `L // 2` |
+| MAJOR | `{ L + L//2 + 1 .. 2L-1 }` | `L - L//2 - 1` |
+| CRITICAL | `{ 2L .. }` | unbounded |
+
+| `L` | MINOR | MAJOR | CRITICAL | Reachable severities |
+|---|---|---|---|---|
+| 1 | `{ }` | `{ }` | `{2, …}` | **CRITICAL only** |
+| 2 | `{3}` | `{ }` | `{4, …}` | **MINOR, CRITICAL** |
+| 3 | `{4}` | `{5}` | `{6, …}` | all three |
+| 4 | `{5, 6}` | `{7}` | `{8, …}` | all three |
+| 5 | `{6, 7}` | `{8, 9}` | `{10, …}` | all three |
+
+**At a limit of 1 every finding in the report is CRITICAL. At a limit of 2,
+MAJOR is unreachable.** Both are configurations `Thresholds.validate` presently
+permits.
+
+The Sprint 1 retrospective agreed to tighten `Thresholds.validate` to **reject
+limits below 2**, owned by this member and scheduled for Friday 27 November.
+This analysis says that fix is one short: **the smallest limit at which all
+three reachable severities are non-empty is 3**, not 2. A limit of 2 passes the
+agreed validation and still produces a report whose MAJOR band is empty by
+construction.
+
+Raised for the stand-up before the fix is written, because it changes the
+constant and not the design. The counter-argument to weigh there is that a limit
+of 2 is a legitimate setting for a nesting depth — a project insisting on at
+most two levels of indentation is strict, not misconfigured — and forbidding it
+to protect a band from being empty refuses a reasonable configuration to fix a
+reporting artefact. The alternative is to change the banding arithmetic rather
+than the validation, which affects every rule and every existing test. **The
+decision belongs to the team**; what the analysis contributes is that 2 and 3
+are different answers and the difference was not visible when the retrospective
+chose 2.
+
+### 8. Finding 4 — the three rules are provably interchangeable, so the cross-rule test is not redundant
+
+After renaming the measurement variable, the path conditions of
+`rule_complexity`, `rule_nesting` and `rule_params` are **identical**, and so
+are the inlined severity conditions. The three differ only in the code constant
+carried into the `Issue` (`CC001`, `NEST001`, `PAR001`), the wording of the
+message, and the variable name in the validation messages. Nothing else.
+
+The duplication is deliberate — a shared helper would put two members' marks
+inside one function — and the analysis shows exactly what it risks: three
+independent copies of a banding decision that must stay in agreement.
+
+**A per-rule test cannot detect a divergence**, because each rule tested alone is
+self-consistent whatever bands it uses. The only test that would fail is one
+asserting the three produce equal severities for equal numbers, which is why
+such a test exists in all three members' black-box packages and is reproduced
+over the whole small-limit range in the white-box suite.
+
+### 9. Finding 5 — `line` is absent from every path condition
+
+The function takes three arguments and branches on two. `line` is copied into
+the `Issue` and never compared, so the tree is the same for every value of it,
+including nonsensical ones: `rule_params(9, 4, -1)` returns an `Issue` reporting
+a finding at line −1, and no validation rejects it.
+
+The rule trusts its caller on line numbering, on the ground that the scanner
+owns it and a rule that second-guessed it could reject a valid report. The
+analysis confirms there is **no path on which a bad line number is caught**, so
+if that trust is ever misplaced the error surfaces in the formatter, not here.
+
+### 10. Concolic walk
+
+Seeded with `(7, 5, 12)` — seven parameters against the default limit of five,
+taken from the worst signature in the Sprint 0 prototype before it was
+discarded. The seed deliberately lands on an **inlined** leaf, so the walk
+begins inside the callee and climbs outward.
+
+| It. | Input | Path | Collected PC | Negated | Next |
+|---|---|---|---|---|---|
+| 1 | `(7, 5)` | MINOR | `P>=0, L>=1, P>L, P<=L+L//2` | callee s4 | `(8, 5)` |
+| 2 | `(8, 5)` | MAJOR | `P>=0, L>=1, P>L, P<2L` | callee s5 | `(10, 5)` |
+| 3 | `(10, 5)` | CRITICAL | `P>=0, L>=1, P>=2L` | caller b3 | `(3, 5)` |
+| 4 | `(3, 5)` | None | `P>=0, L>=1, P<=L` | caller b2 | `(3, 0)` |
+| 5 | `(3, 0)` | raises | `P>=0, L<1` | caller b1 | `(-1, 0)` |
+| 6 | `(-1, 0)` | raises | `P<0` | — | — |
+
+**Six iterations, six feasible paths, one backtrack** — at iteration 3, where
+the two deepest branches belong to the callee and are exhausted, so the walk
+unwinds to the caller's own b3.
+
+**The walk crosses a call boundary without noticing, which is the point.**
+Iterations 1 and 2 negate branches in `core/severity.py`; iterations 3 to 5
+negate branches in `core/rules.py`. Nothing in the procedure distinguishes them,
+because the path condition is a conjunction of atoms over `P` and `L` and which
+file an atom came from is not recorded in it.
+
+That is what makes inlining the right treatment rather than a convenient
+simplification: `classify_severity(P, L)` passes the caller's symbols straight
+through with no transformation, so the substitution is the identity. **A callee
+that computed a new value from its arguments** — a hash, a lookup, anything
+non-linear — **would break that**, and the walk would have to treat the call as
+an opaque operation and stop exploring at it.
+
+**Three negations the solver was never offered.** The walk reached six of the
+seven syntactic leaves. The missing one is INFO, and no input was ever proposed
+for it because `P > L and P <= L` is unsatisfiable. A real solver returns UNSAT,
+the leaf is marked infeasible and the walk moves on. **A hand-run walk gets no
+such signal**: an unsatisfiable negation and an exhausted frontier look the same
+from the outside, which is how an infeasible path gets quietly recorded as "not
+yet reached" and then as "uncovered". The same applies to the callee's two
+validation leaves. Three leaves, three UNSAT results, and only the algebra
+distinguishes them from a gap in the testing — which is the honest argument for
+doing the symbolic work *alongside* the concolic walk rather than instead of it.
+
+**What the walk cannot reach.** All six feasible paths, and only at `L = 5`.
+Every finding about small limits — that MAJOR is empty at `L = 2`, that CRITICAL
+is the only band at `L = 1`, that 3 and not 2 is the smallest safe limit — is
+invisible, for the same reason as in US14. **So the walk cannot find the defect
+the retrospective is about to half-fix.** It was found by solving the band
+expressions.
+
+### 11. Coverage
+
+| Measure | Value |
+|---|---|
+| Leaves in the inlined tree | 7 |
+| Feasible paths | 6 |
+| Paths tested | 6 |
+| Infeasible paths found | **3** — the callee's s1, s2 and s3 under C4 |
+| Infeasible leaves across all three rules | **9** |
+| Concolic backtracking steps required | **1** |
+| Branch outcomes in `rule_params` | 6 of 6 |
+| Statement coverage of `rule_params` | 100% |
+| Severities a rule can emit | **3 of 4** — INFO proved unreachable |
+| Defects raised | **1** — the agreed `validate` fix should reject limits below **3** |

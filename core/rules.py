@@ -17,6 +17,7 @@ from model.issue import Issue
 #: rule codes, one per rule. The code identifies the rule, not the severity.
 CODE_COMPLEXITY = "CC001"
 CODE_NESTING = "NEST001"
+CODE_PARAMS = "PAR001"
 
 
 def rule_complexity(cc, limit, line):
@@ -75,3 +76,35 @@ def rule_nesting(depth, limit, line):
     severity = classify_severity(depth, limit)
     message = "nesting depth %d exceeds limit %d" % (depth, limit)
     return Issue(CODE_NESTING, severity, line, message)
+
+
+def rule_params(param_count, limit, line):
+    """Raise an issue when a signature takes too many parameters - US22.
+
+    The third rule in this module, and the third built to the shape US19
+    established: None when the measurement is within its limit, an Issue when
+    it is over, and the severity delegated to classify_severity.
+
+    By the third instance the shape is worth stating as a contract rather than
+    a coincidence. Every rule_* function in this module:
+
+      * validates its measurement and its limit, in that order;
+      * treats the limit as inclusive, so sitting exactly on it is acceptable;
+      * returns None rather than an INFO-severity issue when nothing is wrong;
+      * carries its own code constant and its own message, and decides nothing
+        about severity.
+
+    Tests in all three members' black-box packages assert that the three rules
+    produce identical severities for identical numbers while carrying different
+    codes, which is what would fail if any of them re-implemented the bands.
+    """
+    if param_count < 0:                    # a parameter count is never negative
+        raise ValueError("param_count must not be negative, got %r"
+                         % (param_count,))
+    if limit < 1:                          # the contract classify_severity sets
+        raise ValueError("limit must be at least 1, got %r" % (limit,))
+    if param_count <= limit:               # within budget: no finding
+        return None
+    severity = classify_severity(param_count, limit)
+    message = "%d parameters exceeds limit %d" % (param_count, limit)
+    return Issue(CODE_PARAMS, severity, line, message)

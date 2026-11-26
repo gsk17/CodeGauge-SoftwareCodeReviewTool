@@ -66,18 +66,19 @@ guess, and a guess makes CPI and SPI meaningless.
 | ID | Owner | Function | Points | Budget (h) | **Actual (h)** | Notes |
 |---|---|---|---|---|---|---|
 | US03 | Gunjan | `depth_from_indent` | 3 | 6 |  |  |
-| US04 | Gunjan | `comment_ratio_percent` | 3 | 6 |  |  |
+| US04 ✅ | Gunjan | `comment_ratio_percent` | 3 | 6 | **3.5** | new module `core/line_metrics.py`; closed 26 Nov |
 | US08 | Gunjan | `count_parameters` | 5 | 10 |  |  |
 | US13 | Kasam | `nesting_penalty` | 5 | 10 |  |  |
-| US14 | Kasam | `parameter_count_rating` | 5 | 10 |  |  |
+| US14 ✅ | Kasam | `parameter_count_rating` | 5 | 10 | **6.0** | the sixth five-pointer and the fifth to land on exactly 6.0; closed 26 Nov |
 | US17 | Kasam | `duplicate_block_score` | 8 | 16 |  |  |
 | US21 | Saaket | `rule_length` | 5 | 10 |  |  |
-| US22 | Saaket | `rule_params` | 3 | 6 |  |  |
+| US22 ✅ | Saaket | `rule_params` | 3 | 6 | **2.5** | equal to US20 — the two cheapest stories in the project are both rules of the same shape; closed 26 Nov |
 | US23 | Saaket | `rule_comment_ratio` | 5 | 10 |  |  |
-| US31 | Harshita | `compare_scores` | 8 | 16 |  |  |
+| US31 ✅ | Harshita | `compare_scores` | 8 | 16 | **9.5** | new module `core/history.py`; equal to US29, and the most expensive story of its sprint for the second sprint running; closed 26 Nov |
 | US33 | Harshita | `serialise_report` | 5 | 10 |  |  |
 | US34 | Harshita | `parse_record_line` | 8 | 16 |  |  |
-| | | **Sprint committed** | **63** | **126** | | not started |
+| | | **Closed so far (4 of 12)** | **19** | **38** | **21.5** | CPI 38 / 21.5 = **1.77** |
+| | | **Sprint committed** | **63** | **126** | | 8 stories open, 44 points |
 
 ### Sprint 3 — 77 points, 154 hours budgeted
 
@@ -101,8 +102,8 @@ guess, and a guess makes CPI and SPI meaningless.
 
 | | Points | Budget (h) | Actual (h) | CPI |
 |---|---|---|---|---|
-| Closed | 56 | 112 | 66.0 | **1.70** |
-| Remaining | 140 | 280 | — | — |
+| Closed | 75 | 150 | 87.5 | **1.71** |
+| Remaining | 121 | 242 | — | — |
 | **Budget at Completion** | **196** | **392** | | |
 
 ## Rolling up to EVM
@@ -161,110 +162,130 @@ which is the entire point of tracking it.
 
 So record what really happened. The analysis is where the marks are.
 
-## Outstanding
+## Closed to date
 
-**Nine stories closed: 49.0 hours against an 84 hour budget, a CPI of 1.71.**
+**Sixteen stories closed: 87.5 hours against a 150 hour budget, a CPI of 1.71.**
 
-Nine data points is enough to stop calling this noise. The 2 h/point rate set at
-planning is wrong by roughly 70%, and it has been wrong in the same direction
-every single time.
+Twelve from Sprint 1, four from Sprint 2.
 
-| Story | Points | Budget (h) | Actual (h) | h/point |
-|---|---|---|---|---|
-| US30 | 3 | 6 | 3.5 | 1.17 |
-| US01 | 3 | 6 | 5.0 | 1.67 |
-| US02 | 3 | 6 | 5.0 | 1.67 |
-| US19 | 5 | 10 | 4.5 | 0.90 |
-| US10 | 5 | 10 | 6.0 | 1.20 |
-| US12 | 5 | 10 | 6.0 | 1.20 |
-| US26 | 5 | 10 | 6.0 | 1.20 |
-| US28 | 5 | 10 | 6.0 | 1.20 |
-| US11 | 8 | 16 | 7.0 | 0.88 |
+| Story | Owner | Points | Budget (h) | Actual (h) | h/point |
+|---|---|---|---|---|---|
+| US20 | Kasam | 3 | 6 | 2.5 | 0.83 |
+| US22 | Saaket | 3 | 6 | 2.5 | 0.83 |
+| US04 | Gunjan | 3 | 6 | 3.5 | 1.17 |
+| US30 | Harshita | 3 | 6 | 3.5 | 1.17 |
+| US01 | Gunjan | 3 | 6 | 5.0 | 1.67 |
+| US02 | Gunjan | 3 | 6 | 5.0 | 1.67 |
+| US07 | Gunjan | 3 | 6 | 5.0 | 1.67 |
+| US19 | Saaket | 5 | 10 | 4.5 | 0.90 |
+| US10 | Kasam | 5 | 10 | 6.0 | 1.20 |
+| US12 | Kasam | 5 | 10 | 6.0 | 1.20 |
+| US14 | Kasam | 5 | 10 | 6.0 | 1.20 |
+| US26 | Saaket | 5 | 10 | 6.0 | 1.20 |
+| US28 | Harshita | 5 | 10 | 6.0 | 1.20 |
+| US11 | Saaket | 8 | 16 | 7.0 | 0.88 |
+| US29 | Harshita | 8 | 16 | 9.5 | 1.19 |
+| US31 | Harshita | 8 | 16 | 9.5 | 1.19 |
+| | | **75** | **150** | **87.5** | **1.17** |
 
-### What the data actually says
+### Per sprint
 
-Two things stand out, and the second is the useful one.
+| | Points closed | Hours | h/point |
+|---|---|---|---|
+| Sprint 1, all 12 stories | 56 | 66.0 | 1.18 |
+| Sprint 2, 4 of 12 stories | 19 | 21.5 | 1.13 |
 
-**Hours vary far less than points do.** The points range from 3 to 8, a factor
-of 2.7. The hours range from 3.5 to 7.0, a factor of 2.0. A story worth nearly
-three times as much does not take anywhere near three times as long.
+The 2 h/point rate set at planning is wrong by roughly 70%, and it has been
+wrong in the same direction every time. Four more stories have not moved the
+overall figure: 87.5 / 75 is **1.17 h/point**, which is what nine stories said
+and what twelve said. The rate agreed at the Sprint 1 retrospective for forward
+planning was 1.2.
 
-**Four of the five 5-point stories cost exactly 6.0 hours.** US10, US12, US26
-and US28 are different functions, written by three different people, in three
-different modules — and they landed on the same figure. That is not people
-rounding to a convenient number; it is the per-story process costing the same
-every time regardless of what the function does.
+### The fixed-cost conclusion from the Sprint 1 review does not hold at sixteen stories
 
-### A better model than a flat rate
-
-Fitting the group means to a straight line:
+Recorded because it was written into the retrospective as a finding and the data
+has since contradicted it. Refitting the group means as before:
 
 ```
-3-point stories   mean 4.5 h   (US30 3.5, US01 5.0, US02 5.0)
-5-point stories   mean 5.7 h   (US19 4.5, four others at 6.0)
-8-point story          7.0 h   (US11)
+3-point stories   mean 3.86 h   (7 stories: 2.5, 2.5, 3.5, 3.5, 5.0, 5.0, 5.0)
+5-point stories   mean 5.75 h   (6 stories: 4.5, 6.0, 6.0, 6.0, 6.0, 6.0)
+8-point stories   mean 8.67 h   (3 stories: 7.0, 9.5, 9.5)
 
-slope  b = (7.0 - 4.5) / (8 - 3) = 2.5 / 5 = 0.5 h per point
-fixed  a = 4.5 - (3 x 0.5)      = 4.5 - 1.5 = 3.0 h per story
-
-        hours  =  3.0  +  0.5 x points
+        hours  =  0.97  +  0.96 x points
 ```
 
-Checked against the 5-point group: `3.0 + 0.5 x 5 = 5.5`, against an observed
-mean of 5.7. Within 0.2 hours.
-
-**So roughly three hours of every story is fixed cost and has nothing to do with
-the function.** Branch, two black-box packages, three white-box packages, the
-symbolic write-up, the pull request, the review — that is the same work whether
-the function is four lines or twenty. Only about half an hour per story point is
-the function itself.
-
-That is why h/point *falls* as stories get bigger: a fixed cost divided by a
-growing denominator. US11 is the clearest case — 8 points, the largest story
-closed, and the lowest h/point of all nine at 0.88.
-
-### What this means for the estimate
-
-| Model | Arithmetic | Project total |
+| Stories available | Fitted model | Fixed cost per story |
 |---|---|---|
-| Planning rate, 2.0 h/point | 196 x 2.0 | **392 h** |
-| Observed flat rate | 49.0 / 42 = 1.17 h/point; 196 x 1.17 | **229 h** |
-| Fixed + variable | 36 x 3.0 + 196 x 0.5 = 108 + 98 | **206 h** |
-| Forward estimate in `time-full.md` | independent pass over all 36 stories | **243.5 h** |
+| 9 | `3.0 + 0.5 x points` | 3.0 h |
+| 12 | `1.8 + 0.81 x points` | 1.8 h |
+| 16 | `0.97 + 0.96 x points` | **0.97 h** |
 
-Three independent routes land between 206 and 244 hours. The planning figure of
-392 is not in that range and is not close to it.
+The fixed component has fallen by a factor of three across three refits while the
+variable component has risen toward the flat rate of 1.17. The Sprint 1 review
+concluded that "roughly three hours of every story is fixed cost and has nothing
+to do with the function"; **that was an artefact of nine data points.** Only one
+eight-point story had closed, so the slope was estimated from a single
+observation and came out too shallow. US29 and US31 at 9.5 hours each doubled
+the eight-point sample and the slope nearly doubled with it.
 
-### Decision for the Sprint 1 review
+The decision to keep a flat rate rather than adopt the two-parameter model was
+therefore right, and for a stronger reason than the one given at the time: the
+model was not stable enough to re-derive planned figures from.
 
-**Recalibrate to 1.2 h/point**, giving a BAC of **235 hours** and a CPI of
-`84 / 49.0 / 1.667 = 1.03`.
+### The Sprint 2 estimation action, checked against the four stories it covered
 
-The fixed-plus-variable model is the better description of reality and belongs
-in the retrospective as the finding. It is *not* proposed as the planning rate,
-for one reason: a flat rate per point is what the backlog, the sprint
-commitments and the burndown are all built on, and changing to a two-parameter
-model would mean re-deriving every planned figure in the project for an
-improvement of about 25 hours on a 230-hour estimate. The flat rate of 1.2 sits
-between the observed 1.17 and the forward estimate's 1.24, and is close enough
-to both.
+The action agreed at the Sprint 1 retrospective, owned by Gunjan: name for each
+story the merged function it most resembles, and let that inform the estimate.
+Applied at the day-1 stand-up on 24 November, before the work was done.
 
-**Record the reasoning either way in `sprint-1-retrospective.md`.** A rate left
-wrong once it is known to be wrong is worse than one that was never checked —
-and the fixed-cost finding is worth more marks than the recalibration itself,
-because it explains *why* the original estimate failed rather than just
-correcting it.
+| Story | Compared to | Predicted | Actual | |
+|---|---|---|---|---|
+| US04 `comment_ratio_percent` | US02 `count_leading_spaces`, 5.0 h | cheaper than 5.0 | **3.5** | correct |
+| US14 `parameter_count_rating` | US30 `grade_band`, 3.5 h | close to 3.5 | **6.0** | **wrong, +71%** |
+| US22 `rule_params` | US20 `rule_nesting`, 2.5 h | at or below 2.5 | **2.5** | correct |
+| US31 `compare_scores` | nothing merged; first to classify a change | high, like US29's 9.5 | **9.5** | correct |
+
+Three of four. US14 was compared to `grade_band` because both are banding
+functions with thresholds, which is a sound comparison of shape - but
+`grade_band` is a three-point story and US14 a five-pointer, so the prediction
+imported an hours figure from a story of a different size. US14 landed on 6.0,
+which is what five of the six five-point stories in this project have cost.
+
+**When the analogy and the point value disagreed, the point value won.**
+`grade_band` at 1.17 h/point against US14's actual 1.20 would have been nearly
+exact, so the analogy is useful expressed in h/point and misleading expressed in
+hours. For the Sprint 2 retrospective to confirm.
+
+### Within-size spread
+
+The second half of the action was to check the hours-per-point spread within each
+point value, where Sprint 1's three-point stories ranged 2.5 to 5.0 - a factor of
+two for stories estimated identically.
+
+| Point value | Sprint 1 range | Sprint 2 range so far |
+|---|---|---|
+| 3 | 2.5 - 5.0, factor **2.0** | 2.5 - 3.5, factor **1.4** |
+| 5 | 4.5 - 6.0, factor 1.33 | 6.0, one story |
+| 8 | 7.0 - 9.5, factor 1.36 | 9.5, one story |
+
+Two stories is far too few to claim the narrowing as an effect. It is written
+down now so that the comparison at the Sprint 2 retrospective is against a
+recorded figure rather than a memory.
 
 ### A caution about these figures
 
-The nine hours figures above were collected from the team's own records rather
-than timed with a stopwatch, and the first four were written down on 12
-November, a day after those stories closed, rather than the same day. Actual
-Cost in earned value management is always self-reported — every timesheet in
-every project is — so this is the normal basis for the measure rather than a
-weakness in it. But the figures are accurate to the half hour at best, and the
-conclusions above are drawn at a scale where that does not matter: a 70% error
-in the planning rate is not an artefact of rounding to 30 minutes.
+The hours above were collected from the team's own records rather than timed with
+a stopwatch, and the first four Sprint 1 figures were written down on 12
+November, a day after those stories closed, rather than the same day. Actual Cost
+in earned value management is always self-reported - every timesheet in every
+project is - so this is the normal basis for the measure rather than a weakness
+in it. But the figures are accurate to the half hour at best, and most of the
+conclusions above are drawn at a scale where that does not matter: a 70% error in
+the planning rate is not an artefact of rounding to 30 minutes.
 
-Every remaining story is logged at the point of work, not reconstructed
-afterwards.
+**One is not**, and is flagged accordingly: the narrowing of the three-point
+spread from a factor of 2.0 to 1.4 rests on two stories half an hour apart. It is
+an observation to check, not a result.
+
+Sprint 2's figures were logged at the point of work rather than reconstructed
+afterwards, and every remaining story is logged the same way.

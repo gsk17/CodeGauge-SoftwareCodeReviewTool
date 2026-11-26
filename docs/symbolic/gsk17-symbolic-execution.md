@@ -617,3 +617,194 @@ itself.
 | Concolic backtracking steps required | **0** |
 | Branch outcomes | 9 of 9 |
 | Statement coverage of `is_function_header` | 100% |
+
+---
+
+## US04 — `core.line_metrics.comment_ratio_percent(comment_lines, code_lines)`
+
+After US01 (string properties) and US02 (a loop needing k=2 unrolling), this is
+the first of this member's functions whose path conditions are **linear
+arithmetic over two integers**. No bounding is needed, no search is needed, and
+every constraint below is solved by hand rather than sampled.
+
+### 1. The function, with branches labelled
+
+```python
+def comment_ratio_percent(comment_lines, code_lines):
+    if comment_lines < 0:                       # b1
+        raise ValueError(...)
+    if code_lines < 0:                          # b2
+        raise ValueError(...)
+    counted = comment_lines + code_lines
+    if counted == 0:                            # b3
+        return 0
+    return comment_lines * 100 // counted       # b4 (implicit else)
+```
+
+### 2. Symbolic inputs
+
+Two symbolic integers, `C` for `comment_lines` and `K` for `code_lines`, with
+the derived term `N = C + K`.
+
+### 3. The execution tree
+
+The tree is a **chain** — each decision has one child that continues — so there
+are four leaves and four paths, and each path condition extends its
+predecessor's negation.
+
+| Path | Path condition | Witness | Returns |
+|---|---|---|---|
+| P1 | `C < 0` | `(-1, -1)` | ValueError, `comment_lines` |
+| P2 | `C >= 0, K < 0` | `(0, -1)` | ValueError, `code_lines` |
+| P3 | `C >= 0, K >= 0, N == 0` | `(0, 0)` | `0` |
+| P4 | `C >= 0, K >= 0, N > 0` | `(28, 142)` | `C * 100 // N` |
+
+### 4. Finding 1 — P3's path condition has exactly one solution
+
+Two non-negative integers summing to zero are both zero, so the empty-file
+branch is reachable by **precisely one input out of an infinite domain**, while
+every other leaf is reachable by infinitely many.
+
+That changes what a test of the branch means. Equivalence partitioning picks a
+representative and accepts the risk that the representative is untypical; here
+there is no rest of the partition, so the single test is exhaustive over it and
+no boundary analysis around it is possible, because the partition has no
+interior. It also means the branch cannot be entered by accident in production:
+only a genuinely empty file arrives there.
+
+### 5. Finding 2 — `== 0` and `<= 0` are interchangeable at b3, but only because of b1 and b2
+
+The guard reads like a deliberately narrow test where a defensive programmer
+would write `<= 0`. Symbolically the two are equivalent, because the path
+condition reaching b3 already contains `C >= 0 and K >= 0`, which makes `N < 0`
+unsatisfiable. The branch `N <= 0 and N != 0` is an **infeasible path**.
+
+The equivalence is inherited from the validations and is not intrinsic. Delete
+b1 and the two forms diverge:
+
+| Input | `N` | with `== 0` | with `<= 0` |
+|---|---|---|---|
+| `(5, -5)` | 0 | returns 0 | returns 0 |
+| `(5, -10)` | −5 | `500 // -5` = **−100** | returns 0 |
+
+So the current code is correct, and correct *conditionally* — the condition
+being three lines above it. Recorded because the two validations look like
+input hygiene and are in fact load-bearing for the arithmetic below them.
+
+### 6. Finding 3 — 100 is returned if and only if `K == 0`
+
+Solving the leaf expression rather than sampling it:
+
+```
+C * 100 // N == 100
+  <=> C * 100 >= 100 * N              (floor division)
+  <=> C * 100 >= 100 * (C + K)
+  <=> 0 >= 100 * K
+  <=> K <= 0
+```
+
+With P4's `K >= 0` that gives `K == 0`, and with `N > 0` it gives `C >= 1`. The
+path condition for a returned 100 is exactly **`C >= 1 and K == 0`** — a file
+of comments and nothing else.
+
+The docstring asserts this; the derivation makes it a guarantee rather than an
+observation from the examples that happened to be tried, and it is why a
+downstream rule may read 100 as the distinguishable case "no code here".
+
+### 7. Finding 4 — 0 does not mean "undocumented"
+
+```
+C * 100 // N == 0   <=>   C * 100 < C + K   <=>   99 * C < K
+```
+
+The threshold grows with the file:
+
+| `K` | `C` | Result |
+|---|---|---|
+| 99 | 1 | `100 // 100` = 1 |
+| 100 | 1 | `100 // 101` = **0** |
+| 500 | 5 | `500 // 505` = **0** |
+
+Under rounding to nearest, the second case would report 1. Flooring is the
+deliberate choice — a reported figure must never overstate what is present —
+and this is its exact cost: **a file of 101 code lines with five comments is
+reported identically to a file with none.**
+
+### 8. Finding 5 — the metric's resolution is the file size
+
+The set of `C` producing a given result `r` is an interval of width about
+`N / 100`. For 170 counted lines that is 1.7; for 1000 it is 10:
+
+| `C` | `K` | Result |
+|---|---|---|
+| 10 | 990 | 1 |
+| 11 | 990 | 1 |
+| 19 | 990 | 1 |
+| 20 | 990 | 1 |
+| 30 | 990 | 2 |
+
+**In a file over 100 counted lines, a single added comment cannot change the
+reported percentage**, so the metric cannot show incremental improvement on
+exactly the files most likely to need it. That is a property of expressing the
+measure as a whole-number percentage, not of this implementation, and it is why
+the issue list rather than this number is what a reviewer should act on.
+
+### 9. Finding 6 — no path can raise `ZeroDivisionError`, and that is provable
+
+The only division is on P4, whose path condition contains `N > 0`. It cannot be
+reached with `N == 0` because b3 returns first, nor with `N < 0` because b1 and
+b2 raise first. Every pair of integers satisfies exactly one of the four path
+conditions, so the function is **total**: it always either returns or raises
+deliberately, and never fails arithmetically.
+
+### 10. Concolic walk
+
+Seeded with `(28, 142)` — the comment and code counts the scanner produced for
+`core/scanner.py` itself at the Sprint 1 close.
+
+| It. | Input | Path | Collected PC | Negated | Next |
+|---|---|---|---|---|---|
+| 1 | `(28, 142)` | P4 | `C>=0, K>=0, N>0` | `N>0` | `(0, 0)` |
+| 2 | `(0, 0)` | P3 | `C>=0, K>=0, N==0` | `K>=0` | `(0, -1)` |
+| 3 | `(0, -1)` | P2 | `C>=0, K<0` | `C>=0` | `(-1, -1)` |
+| 4 | `(-1, -1)` | P1 | `C<0` | — | — |
+
+**Four iterations, four paths, no backtracking.** The tree is a chain, as in
+US07, so negating the deepest branch always lands on a fresh leaf.
+
+**Iteration 1's negation had exactly one model.** `C >= 0 and K >= 0 and
+C + K == 0` admits only `(0, 0)`. Every other step in every concolic walk in
+this project chose a witness from an infinite solution set; here there is
+nothing to choose and nothing to shrink, and the seed is irrelevant to the
+output. It is the clearest illustration in these write-ups that the solver
+reports a *model of a constraint system* rather than generating an example.
+
+**Iteration 2 shows where a hand-run walk goes quietly wrong.** Negating
+`K >= 0` carries `C >= 0` forward and must **drop** `C + K == 0`, which
+belonged to the negated branch's sibling rather than to the prefix. A walk that
+kept it would be handed `C >= 0 and K < 0 and C + K == 0`, which is satisfiable
+— `(1, -1)` models it — and would produce a test that reaches the same leaf and
+passes. The walk would look identical and rest on a constraint the program
+never asserted. Both inputs are pinned in
+`gsk17/test/whitebox/concolic_testing/`, so the two are known to be
+indistinguishable by outcome and distinguishable only by derivation.
+
+**What the walk cannot reach.** Path coverage is complete and findings 3, 4 and
+5 are all *inside* P4 — solved boundaries where the returned number changes but
+the path does not. Concolic exploration is driven by path novelty, and the
+interesting behaviour of this function lives within one path. That is the
+honest limit of the technique on arithmetic leaves, and the reason the
+random-based black-box suite sampling P4 exists alongside it.
+
+### 11. Coverage
+
+| Measure | Value |
+|---|---|
+| Paths in the tree | 4 |
+| Paths tested | 4 |
+| Infeasible paths found | **1** — `N <= 0 and N != 0` unsatisfiable given b1, b2 |
+| Concolic backtracking steps required | **0** |
+| Negations with a unique model | **1** — iteration 1 |
+| Branch outcomes | 6 of 6 |
+| Statement coverage of `comment_ratio_percent` | 100% |
+| Behaviour inside the arithmetic leaf | 3 solved boundaries, none reachable by path exploration |

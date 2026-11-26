@@ -70,3 +70,41 @@ def max_nesting_depth(depths):
         if depth > deepest:                # a new maximum
             deepest = depth
     return deepest
+
+
+#: parameter count ratings, best to worst
+RATING_OK = "OK"
+RATING_MANY = "MANY"
+RATING_EXCESSIVE = "EXCESSIVE"
+
+
+def parameter_count_rating(param_count, limit):
+    """Rate a function signature by how many parameters it takes - US14.
+
+    Three bands: within the limit is OK, up to twice the limit is MANY, and
+    anything above twice the limit is EXCESSIVE. The thresholds are relative to
+    the configured limit rather than fixed numbers, so the rating means the
+    same thing whatever limit a project sets.
+
+    **The bands are not evenly sized, and the top one is unbounded.** At a
+    limit of 4, OK covers 0-4, MANY covers 5-8, and EXCESSIVE is everything
+    from 9 upward - so a signature with twelve parameters and one with ninety
+    are rated identically. That is intended: once a signature is excessive the
+    exact count stops being useful, and the issue list rather than the rating
+    is what a reader should turn to. It does mean the rating cannot be used to
+    rank two bad signatures against each other.
+
+    Unlike the severity bands in `core.severity`, no limit makes a rating
+    unreachable here: the MANY band always holds exactly `limit` values, so it
+    is never empty however small the limit.
+    """
+    if param_count < 0:                    # a parameter count is never negative
+        raise ValueError("param_count must not be negative, got %r"
+                         % (param_count,))
+    if limit < 1:                          # a limit of zero would fail every
+        raise ValueError("limit must be at least 1, got %r" % (limit,))
+    if param_count <= limit:               # within budget
+        return RATING_OK
+    if param_count <= 2 * limit:           # over, but not by much
+        return RATING_MANY
+    return RATING_EXCESSIVE                # implicit else: beyond twice the limit

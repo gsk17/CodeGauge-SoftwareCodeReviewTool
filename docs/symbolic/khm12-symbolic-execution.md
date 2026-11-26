@@ -522,3 +522,224 @@ input. That is the test that would fail if the two rules ever diverged.
 | Infeasible path combinations found | **3** — INFO unreachable at any limit; P5 infeasible at `L = 2`; P4 and P5 both infeasible at `L = 1` |
 | Branch outcomes | 6 reachable of 7 total; the 7th is proved unreachable |
 | Statement coverage of `rule_nesting` | 100% |
+
+---
+
+## US14 — `core.complexity.parameter_count_rating(param_count, limit)`
+
+After US10 (a counting loop) and US12 (a loop needing k=2 unrolling), this is
+this member's first **loop-free** function. The tree is finite and complete with
+no bounding, so the analysis is exact rather than bounded.
+
+### 1. The function, with branches labelled
+
+```python
+def parameter_count_rating(param_count, limit):
+    if param_count < 0:                     # b1
+        raise ValueError(...)
+    if limit < 1:                           # b2
+        raise ValueError(...)
+    if param_count <= limit:                # b3
+        return RATING_OK
+    if param_count <= 2 * limit:            # b4
+        return RATING_MANY
+    return RATING_EXCESSIVE                 # b5 (implicit else)
+```
+
+### 2. Symbolic inputs
+
+Two symbolic integers, `P` for `param_count` and `L` for `limit`.
+
+### 3. The execution tree
+
+| Path | Path condition | Witness | Returns |
+|---|---|---|---|
+| P1 | `P < 0` | `(-1, 0)` | ValueError, `param_count` |
+| P2 | `P >= 0, L < 1` | `(3, 0)` | ValueError, `limit` |
+| P3 | `P >= 0, L >= 1, P <= L` | `(3, 4)` | `OK` |
+| P4 | `P >= 0, L >= 1, P > L, P <= 2L` | `(6, 4)` | `MANY` |
+| P5 | `P >= 0, L >= 1, P > 2L` | `(9, 4)` | `EXCESSIVE` |
+
+Five leaves, five paths. The sixth syntactic combination, `P <= L and P > 2L`,
+is unsatisfiable for every `L >= 1` and is an **infeasible path** rather than an
+untested one.
+
+### 4. Finding 1 — no valid limit empties a band, which `core.severity` cannot say
+
+Reading band sizes straight off the path conditions:
+
+| Band | Membership | Size |
+|---|---|---|
+| OK | `{ 0 .. L }` | `L + 1` |
+| MANY | `{ L+1 .. 2L }` | `L` |
+| EXCESSIVE | `{ 2L+1 .. }` | unbounded |
+
+`L >= 1` holds on every path that reaches a rating, so MANY always holds at
+least one value and **all three ratings are reachable at every valid limit.** At
+the minimum limit of 1: OK = {0, 1}, MANY = {2}, EXCESSIVE = {3, …}.
+
+This is worth proving because the sibling function in the project does not have
+the property. `classify_severity` bands with `limit + limit // 2` and
+`2 * limit`:
+
+| Band | Membership | Size | Empty when |
+|---|---|---|---|
+| MINOR | `{ L+1 .. L + L//2 }` | `L // 2` | `L = 1` |
+| MAJOR | `{ L + L//2 + 1 .. 2L-1 }` | `L - L//2 - 1` | `L = 1, 2` |
+
+A project configuring a limit of 1 therefore gets CRITICAL for every finding,
+and one configuring 2 can never see MAJOR. **This function needs no such fix**,
+and the difference is not a matter of care but of arithmetic: integer halving
+collapses, doubling does not.
+
+### 5. Finding 2 — the OK band is one wider than MANY, and both comparisons cause it
+
+b3 and b4 are both inclusive, which puts `L` in OK and `2L` in MANY — an
+asymmetry of exactly one value whose relative size falls away as the limit
+rises:
+
+| `L` | OK holds | MANY holds |
+|---|---|---|
+| 1 | 2 | 1 |
+| 4 | 5 | 4 |
+| 20 | 21 | 20 |
+
+So "within the limit" is slightly more generous than "over by no more than the
+limit", and at a small limit markedly so. Not a defect — inclusivity at b3 is
+the documented contract — but the two bands are not the equal halves the phrase
+"up to twice the limit" suggests.
+
+### 6. Finding 3 — monotonicity in both arguments, provable from the path conditions
+
+Each path condition is an interval in `P` and a half-plane in `L`, and the
+intervals are ordered. Writing OK < MANY < EXCESSIVE:
+
+* **for fixed `L`, the rating is non-decreasing in `P`** — adding a parameter
+  can never improve a rating;
+* **for fixed `P`, the rating is non-increasing in `L`** — raising the limit can
+  never worsen a rating.
+
+Neither is checked by any black-box test in isolation; both are properties of
+the family of paths rather than of any one of them. The random-based suite
+asserts the first as an invariant over sampled pairs, which is *evidence* for
+it; this is a *proof* of it.
+
+### 7. Finding 4 — almost every input is EXCESSIVE, so the rating cannot rank bad signatures
+
+Two of the three bands are finite and the third is unbounded, so the rating maps
+a finite set to OK and MANY and an infinite set to EXCESSIVE. At `L = 4`, nine
+parameters, ninety and nine hundred are all EXCESSIVE.
+
+The docstring states this is intended. The analysis makes the cost precise:
+**the rating is not an ordering on over-limit signatures**, so a report cannot
+use it to sort the worst offenders, and `max()` over a file's ratings tells a
+reviewer only that at least one signature is beyond `2L`.
+
+### 8. Finding 5 — at exactly twice the limit, this function says MANY and `classify_severity` says CRITICAL
+
+A parameter count can be graded twice in this tool — by this function, and by
+`core.rules.rule_params`, which routes through `classify_severity`. The two
+band structures are not aligned, and the misalignment is provable at one point.
+Substituting `P = 2L`, for any `L >= 1`:
+
+```
+parameter_count_rating(2L, L)
+    2L <= L         false for L >= 1
+    2L <= 2L        TRUE                 -> MANY, the kindest over-limit band
+
+classify_severity(2L, L)
+    2L <= L                 false
+    2L <= L + L//2          false, since L + L//2 < 2L for all L >= 1
+    2L < 2L                 false
+                                         -> CRITICAL, the harshest band
+```
+
+So for **every** valid limit, the count `P = 2L` is simultaneously MANY and
+CRITICAL. More broadly, the whole MANY band spans all three reachable
+severities. At `L = 4`:
+
+| `P` | Rating | Severity |
+|---|---|---|
+| 5, 6 | MANY | MINOR |
+| 7 | MANY | MAJOR |
+| 8 | MANY | **CRITICAL** |
+| ≥ 9 | EXCESSIVE | CRITICAL |
+
+**The rating is strictly coarser than the severity and disagrees with it about
+where the serious boundary lies** — EXCESSIVE begins at `2L+1`, CRITICAL at
+`2L`. Neither is wrong against its own documented contract; they are two
+independent gradings of one measurement, and a report showing both would appear
+to contradict itself for one parameter count in every configuration.
+
+Raised for the Sprint 2 review. Either the rating is dropped from the report in
+favour of the severity, or b4 becomes `param_count < 2 * limit` so the
+boundaries coincide. The second is a one-character change and would shrink MANY
+to `L - 1` values — **which would empty it at `L = 1` and recreate exactly the
+defect finding 1 shows this function currently avoids.** The options are not
+both free, and that is the substance of the finding.
+
+### 9. Finding 6 — a doubly-invalid call reports only the first fault
+
+b1 precedes b2, so `(-1, 0)` raises about `param_count` and never mentions that
+the limit is also unusable. A caller correcting the reported fault and
+re-running meets a second error rather than a result. Shared with every
+validated function in the project; stated here because P1's witness is
+deliberately doubly-invalid, so the test pins the order rather than accidentally
+depending on it.
+
+### 10. Concolic walk
+
+Seeded with `(3, 4)` — the signature of `classify_line(line)` plus two, against
+the project's default parameter limit of 4.
+
+| It. | Input | Path | Collected PC | Negated | Next |
+|---|---|---|---|---|---|
+| 1 | `(3, 4)` | P3 | `P>=0, L>=1, P<=L` | `P<=L` | `(5, 4)` |
+| 2 | `(5, 4)` | P4 | `P>=0, L>=1, P>L, P<=2L` | `P<=2L` | `(9, 4)` |
+| 3 | `(9, 4)` | P5 | `P>=0, L>=1, P>L, P>2L` | `L>=1` | `(9, 0)` |
+| 4 | `(9, 0)` | P2 | `P>=0, L<1` | `P>=0` | `(-1, 0)` |
+| 5 | `(-1, 0)` | P1 | `P<0` | — | — |
+
+**Five iterations, five paths, no backtracking** — a chain, as in US07 and US04.
+The contrast is with the US12 walk, whose loop made the tree a bush and cost two
+backtracks and two manual shrink steps.
+
+**The solver had freedom at every step, and it was used differently each time.**
+Unlike US04, where one negation admitted a unique model, every system here has
+infinitely many solutions:
+
+* **Iterations 1 and 2 held `L` fixed at 4 and moved `P`.** The negated atom
+  mentions both variables, so `(3, 2)` would satisfy iteration 1's negation as
+  readily as `(5, 4)`. Moving `P` was chosen because holding the configuration
+  still and varying the measurement is what a reader comparing two adjacent
+  tests expects, and it keeps the five witnesses on one line of the plane.
+* **Iteration 3 could not hold `L` fixed**, since the negated atom is `L >= 1`
+  itself. It moved `L` and then checked the carried terms were still
+  satisfiable: `P > L` and `P > 2L` with `L = 0` reduce to `P > 0`, which
+  `P = 9` meets, so the prefix survived unchanged.
+* **Iteration 4 negated `P >= 0` and discarded everything about `L`**, since
+  `L < 1` belonged to the negated branch's sibling. `(-1, 0)` keeps the previous
+  `L` only as a convenience; `(-1, 7)` reaches the same leaf.
+
+Recorded because "the solver returns a model" hides a real choice, and the
+choice decides whether the resulting suite reads as a coherent sequence or as
+five unrelated numbers. Both are 100% path coverage.
+
+**What the walk cannot reach.** All five paths, and only at `L = 4`. Findings 1,
+2 and 5 are all about how the bands change with `L`, and every one is invisible
+here — finding 5 needs `P = 8`, and the walk went from 5 straight to 9. **A
+different limit is a different band width, not a different path**, so no
+negation ever demands a new value of `L` except iteration 3, which demands an
+invalid one.
+
+### 11. Coverage
+
+| Measure | Value |
+|---|---|
+| Paths in the tree | 5 |
+| Paths tested | 5 |
+| Infeasible paths found | **1** — `P <= L and P > 2L` unsatisfiable for all `L >= 1` |
+| Concolic backtracking steps required | **0** |
+| Branch outcomes | 8 of 8 |
+| Statement coverage of `parameter_count_rating` | 100% |
+| Cross-module findings | **1** — `P = 2L` is MANY and CRITICAL at once, for every limit |

@@ -21,10 +21,17 @@ def test_thresholds_defaults():
 
 
 def test_validate_rejects_zero_negative_and_unknown():
-    assert Thresholds.validate("complexity_limit", 1) is True
+    # `complexity_limit` is a severity limit, so its floor is 2 rather than 1
+    # since the defect fix of 27 November 2026. The line asserting 1 was valid
+    # was written at Sprint 0 and encoded the defect; it is corrected here
+    # rather than deleted, so the change is visible in the diff.
+    assert Thresholds.validate("complexity_limit", 2) is True
+    assert Thresholds.validate("complexity_limit", 1) is False
     assert Thresholds.validate("complexity_limit", 0) is False
     assert Thresholds.validate("complexity_limit", -3) is False
     assert Thresholds.validate("not_a_threshold", 5) is False
+    # `comment_ratio_min` is not a severity limit and keeps the floor of 1
+    assert Thresholds.validate("comment_ratio_min", 1) is True
 
 
 def test_records_hold_their_fields():

@@ -1053,3 +1053,127 @@ function instead of one.
   so far. US33 `serialise_report` starts tomorrow
 - Impediments: none. Still carries 21 of Sprint 2's 63 points; 13 remain after
   today against Gunjan's 8, so the imbalance narrows rather than widens
+
+---
+
+## 2026-11-27 (Sprint 2, day 4)
+
+### Cycle 2 opens. Four commit-1s, and the defect fix closes the last uncovered line in the project.
+
+Nothing merged, so **44 points remain against an ideal of 37.8** - 6.2 behind,
+which is the 0/100 rule rather than a slip. Four stories are a third complete.
+
+| Member | Story | Points | Module |
+|---|---|---|---|
+| Gunjan | US03 `depth_from_indent` | 3 | `core/line_metrics.py` |
+| Kasam | US13 `nesting_penalty` | 5 | `core/complexity.py` |
+| Saaket | US21 `rule_length` | 5 | `core/rules.py` |
+| Harshita | US33 `serialise_report` | 5 | `core/history.py` |
+
+Eight failing black-box test files committed, all observed failing on
+`ImportError` for the function that does not exist yet.
+
+### The `Thresholds.validate` decision, taken today
+
+The retrospective on 24 November agreed to **reject severity limits below 2**.
+Saaket's US22 analysis then showed that a limit of 2 still produces an empty
+MAJOR band, and that **3** is the smallest sound limit. Harshita argued in her
+review of #51 against raising the floor again. **Her position was adopted.**
+
+> **Decision.** The floor stays at **2**, as the retrospective agreed. A limit
+> of 2 is a legitimate strict setting - a project insisting on at most two
+> levels of nesting is not misconfigured - and refusing it to keep a band
+> non-empty would trade a real capability for a cosmetic one. The limitation is
+> **reported instead of forbidden**: `core.severity.reachable_severities(limit)`
+> returns which severities a rule can actually emit at a given limit, so a
+> configuration that empties a band can be surfaced to the person who chose it.
+
+Two things came out of writing the fix that the decision had not anticipated.
+
+**The floor must not apply to every threshold.** `comment_ratio_min` is in
+`Thresholds.NAMES` but is a minimum *percentage* compared directly, never passed
+to `classify_severity` and never banded. A single floor across all seven names
+would have refused `comment_ratio_min = 1` - a project asking for at least 1%
+comments, which is a sensible request. The fix therefore carries a new
+`SEVERITY_LIMITS` tuple naming the six thresholds the floor applies to, and is
+seven lines rather than the one character the retrospective imagined.
+
+**`reachable_severities` asks `classify_severity` rather than restating the
+bands.** It loops the measurement from `limit + 1` to `2 * limit` and collects
+what comes back. US22 found that three independent copies of one banding
+decision is already one risk too many; a fourth copy inside a function whose
+whole purpose is to describe the bands would have been the worst place to put
+it. If the banding arithmetic ever changes, this function changes with it rather
+than silently disagreeing.
+
+### A Sprint 0 test had encoded the defect
+
+`tests/test_model.py` asserted `validate("complexity_limit", 1) is True`. That
+line was written at Sprint 0, passed for three weeks, and was **asserting the
+bug**. It is corrected rather than deleted, so the change is visible in the
+diff, with a comment saying why.
+
+Worth recording because it is the clearest instance in the project of a test
+passing while being wrong. Coverage was 100% on that function the whole time;
+every branch ran; the assertion simply described behaviour nobody had analysed
+yet. **The defect was found by symbolic execution and could not have been found
+by adding tests**, because the tests agreed with the code.
+
+### `model/thresholds.py` reaches 100%
+
+Line 43 of `model/thresholds.py` - inside `validate` - had been **the only
+uncovered line in the project** since Sprint 1, and it sat in the same function
+as the defect. The fix and its twenty new tests closed it.
+
+The suite is now **745 tests, all passing**, with `core/` and `model/` both at
+100% statement coverage.
+
+### Stand-up
+
+**Gunjan**
+- Since yesterday: US04 merged in #49. US03 `depth_from_indent` - failing tests
+  in both black-box packages, observed failing
+- Today: US03 implementation tomorrow
+- Impediments: none
+
+**Kasam**
+- Since yesterday: US14 merged in #50. US13 `nesting_penalty` - failing tests in
+  both black-box packages, observed failing. The penalty is charged per level
+  past the limit and capped at 25, so that a function six levels deep costs more
+  than one four levels deep - which the severity bands cannot express, because
+  both land in the same band at most limits
+- Today: US13 implementation tomorrow
+- Impediments: none
+
+**Saaket**
+- Since yesterday: US22 merged in #51. US21 `rule_length` - failing tests in
+  both black-box packages, observed failing. The fourth rule of the shape, so
+  the black-box suite now asserts all four band identically for identical
+  numbers while carrying four distinct codes. **The `Thresholds.validate` fix
+  committed separately**, with its own justification, no story points, and not
+  counted toward velocity
+- Today: US21 implementation tomorrow
+- Impediments: none
+
+**Harshita**
+- Since yesterday: US31 merged in #52. US33 `serialise_report` - failing tests in
+  both black-box packages, observed failing. The storage format is settled:
+  tagged pipe-delimited lines, `REPORT` then one `FUNC` per record then one
+  `ISSUE` per issue
+- Today: US33 implementation tomorrow
+- Impediments: none. **The format has no escaping**, so a `|` inside an issue
+  message would produce a line US34 cannot parse. No message this project
+  generates can contain one - every message is built by a `rule_*` function from
+  a measurement and a limit - and the black-box suite asserts that rather than
+  assuming it. The note for whoever writes US25 `rule_duplication` is that a
+  message formatted from a *function name* would break the format
+
+### Why the round-trip test is not written yet
+
+US33 serialises and US34 parses, and the property that matters is that parsing
+the output reconstructs the report. US34 starts on 2 December, so the invariant
+cannot be asserted today. The random-based suite says so explicitly and checks
+everything a parser would need instead - stable field counts per tag, no stray
+delimiters, every value recoverable as text. **The round-trip test is the first
+thing US34's suite should contain**, and it is recorded here so that it is
+written as a requirement rather than remembered as an afterthought.

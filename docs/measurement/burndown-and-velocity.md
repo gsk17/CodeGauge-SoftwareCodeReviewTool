@@ -57,7 +57,7 @@ Ideal burn 6.3 points per day.
 | 1 | Tue 24 Nov | 56.7 | 63 | — | US04, US14, US22, US31 started on day 1, as Sprint 1 did; the backlog's 23 Nov start dates assume work on the planning day. Sprint 1 review and retrospective held today |
 | 2 | Wed 25 Nov | 50.4 | 63 | 0 | all four implementations written; nothing closed, so the 0/100 rule pays nothing |
 | 3 | Thu 26 Nov | 44.1 | 44 | 19 | US04, US14, US22, US31 merged. **Level with the ideal line for the first time in any sprint** - the step is four stories closing together, not a change of pace |
-| 4 | Fri 27 Nov | 37.8 | _ | _ | |
+| 4 | Fri 27 Nov | 37.8 | 44 | 0 | cycle 2 opens - US03, US13, US21, US33 started; the `Thresholds.validate` defect fix committed separately, no points |
 | 5 | Mon 30 Nov | 31.5 | _ | _ | |
 | 6 | Tue 1 Dec | 25.2 | _ | _ | |
 | 7 | Wed 2 Dec | 18.9 | _ | _ | |
